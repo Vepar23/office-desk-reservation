@@ -112,14 +112,6 @@ export default function LoginPage() {
             {loading ? 'Prijava u tijeku...' : 'Prijavi se'}
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Default admin pristup:</p>
-          <p className="text-xs mt-1">
-            Korisničko ime: <span className="font-mono">admin</span> | Lozinka:{' '}
-            <span className="font-mono">test123</span>
-          </p>
-        </div>
       </div>
     </div>
   )
