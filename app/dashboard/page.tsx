@@ -324,7 +324,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Office Map - Main focus on mobile */}
-          <div className="min-h-[500px]">
+          <div className="min-h-[600px] h-[70vh]">
             <OfficeMap
               desks={desks}
               backgroundImage={officeMap}

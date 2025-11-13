@@ -43,6 +43,35 @@ export default function OfficeMap({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  // Reference dimensions (desktop size)
+  const REFERENCE_WIDTH = 1200
+  const REFERENCE_HEIGHT = 700
+
+  // Calculate scale based on container size
+  useEffect(() => {
+    const updateScale = () => {
+      if (!containerRef.current) return
+      const containerWidth = containerRef.current.clientWidth
+      const containerHeight = containerRef.current.clientHeight
+      
+      // Calculate scale based on container width (responsive)
+      const scaleX = containerWidth / REFERENCE_WIDTH
+      const scaleY = containerHeight / REFERENCE_HEIGHT
+      const newScale = Math.min(scaleX, scaleY)
+      
+      setScale(newScale)
+    }
+
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    return () => window.removeEventListener('resize', updateScale)
+  }, [])
+
+  // Helper function to convert coordinates
+  const scalePosition = (value: number) => value * scale
+  const unscalePosition = (value: number) => value / scale
 
   const getDeskStatus = (desk: Desk) => {
     if (desk.status === 'permanently_occupied') return 'gray'
@@ -261,7 +290,7 @@ export default function OfficeMap({
     <div className="bg-white rounded-xl shadow-lg p-2 sm:p-4 h-full">
       <div
         ref={containerRef}
-        className="relative w-full h-full min-h-[400px] sm:min-h-[500px] lg:min-h-[700px] max-h-[800px] border-2 border-gray-200 rounded-lg overflow-hidden touch-none"
+        className="relative w-full h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] max-h-[90vh] border-2 border-gray-200 rounded-lg overflow-hidden touch-none"
         style={{
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
           backgroundSize: 'contain',
@@ -283,13 +312,16 @@ export default function OfficeMap({
             const x = touch.clientX - rect.left
             const y = touch.clientY - rect.top
 
-            // Find desk at touch position
+            // Find desk at touch position (unscale touch coordinates)
+            const unscaledX = unscalePosition(x)
+            const unscaledY = unscalePosition(y)
+            
             const touchedDesk = desks.find((desk) => {
               return (
-                x >= desk.x &&
-                x <= desk.x + desk.width &&
-                y >= desk.y &&
-                y <= desk.y + desk.height
+                unscaledX >= desk.x &&
+                unscaledX <= desk.x + desk.width &&
+                unscaledY >= desk.y &&
+                unscaledY <= desk.y + desk.height
               )
             })
 
@@ -310,6 +342,13 @@ export default function OfficeMap({
         {desks.map((desk) => {
           const status = getDeskStatus(desk)
           const isSelected = selectedDesk === desk.id
+          
+          // Scale positions and sizes for responsive display
+          const scaledX = scalePosition(desk.x)
+          const scaledY = scalePosition(desk.y)
+          const scaledWidth = scalePosition(desk.width)
+          const scaledHeight = scalePosition(desk.height)
+          
           return (
             <div
               key={desk.id}
@@ -319,12 +358,13 @@ export default function OfficeMap({
                 isAdmin ? 'cursor-move' : 'cursor-pointer'
               }`}
               style={{
-                left: `${desk.x}px`,
-                top: `${desk.y}px`,
-                width: `${desk.width}px`,
-                height: `${desk.height}px`,
+                left: `${scaledX}px`,
+                top: `${scaledY}px`,
+                width: `${scaledWidth}px`,
+                height: `${scaledHeight}px`,
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
+                fontSize: `${Math.max(10, scaledWidth / 6)}px`, // Responsive font size
               }}
               onMouseDown={(e) => {
                 if (isAdmin) {
@@ -339,10 +379,10 @@ export default function OfficeMap({
                 }
               }}
             >
-              <div className="text-center pointer-events-none">
-                <div className="text-sm">{desk.desk_number}</div>
+              <div className="text-center pointer-events-none" style={{ fontSize: `${Math.max(10, scaledWidth / 5)}px` }}>
+                <div>{desk.desk_number}</div>
                 {isAdmin && isSelected && (
-                  <div className="text-xs mt-1 opacity-75">
+                  <div className="mt-1 opacity-75" style={{ fontSize: `${Math.max(8, scaledWidth / 8)}px` }}>
                     {desk.width}x{desk.height}
                   </div>
                 )}
