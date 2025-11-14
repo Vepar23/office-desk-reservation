@@ -123,9 +123,9 @@ git push -u origin main
 
 | Name | Value | Environments |
 |------|-------|--------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://gsrvcotpczxiojwwwszs.supabase.co` | Production, Preview, Development |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Production, Preview, Development |
-| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://your-project-id.supabase.co` | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `your_supabase_anon_key_here` | Production, Preview, Development |
+| `SUPABASE_SERVICE_ROLE_KEY` | `your_supabase_service_role_key_here` | Production, Preview, Development |
 | `NEXT_PUBLIC_APP_URL` | `https://your-app.vercel.app` | Production |
 
 **Gde naći Supabase kredencijale:**
