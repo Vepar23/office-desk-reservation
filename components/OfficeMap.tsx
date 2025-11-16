@@ -44,8 +44,9 @@ export default function OfficeMap({
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   // Fixed map dimensions (no scaling - use scrolling instead)
-  const MAP_WIDTH = 1200
-  const MAP_HEIGHT = 800
+  // Desktop: large map size, Mobile: scrollable
+  const MAP_WIDTH = 1600
+  const MAP_HEIGHT = 1000
 
   const getDeskStatus = (desk: Desk) => {
     if (desk.status === 'permanently_occupied') return 'gray'
@@ -318,7 +319,7 @@ export default function OfficeMap({
             width: `${MAP_WIDTH}px`,
             height: `${MAP_HEIGHT}px`,
             backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-            backgroundSize: 'cover',
+            backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
             backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',

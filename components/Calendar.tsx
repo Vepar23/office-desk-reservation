@@ -79,11 +79,11 @@ export default function Calendar({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-3 sm:p-6 bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="flex items-center justify-between mb-3 sm:mb-6">
+    <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button
           onClick={handlePrevMonth}
-          className="p-1 sm:p-2 hover:bg-blue-200 rounded-lg transition"
+          className="p-1 sm:p-2 hover:bg-blue-200 rounded-lg transition flex-shrink-0"
         >
           <svg
             className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
@@ -104,7 +104,7 @@ export default function Calendar({
         </h2>
         <button
           onClick={handleNextMonth}
-          className="p-1 sm:p-2 hover:bg-blue-200 rounded-lg transition"
+          className="p-1 sm:p-2 hover:bg-blue-200 rounded-lg transition flex-shrink-0"
         >
           <svg
             className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
@@ -122,58 +122,52 @@ export default function Calendar({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-        {dayNames.map((day) => (
-          <div
-            key={day}
-            className="text-center text-xs sm:text-sm font-semibold text-gray-600 py-1 sm:py-2"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
+      {/* Horizontal scrollable calendar */}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex gap-2 sm:gap-3 min-w-max">
+          {Array.from({ length: daysInMonth }).map((_, index) => {
+            const day = index + 1
+            const date = new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth(),
+              day
+            )
+            const isWeekendDay = isWeekend(date)
+            const isSelected = isSameDay(date, selectedDate)
+            const isReserved = isDateReserved(day)
+            const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
+            const dayName = dayNames[date.getDay()]
 
-      <div className="grid grid-cols-7 gap-1 sm:gap-2">
-        {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-          <div key={`empty-${index}`} />
-        ))}
-
-        {Array.from({ length: daysInMonth }).map((_, index) => {
-          const day = index + 1
-          const date = new Date(
-            currentMonth.getFullYear(),
-            currentMonth.getMonth(),
-            day
-          )
-          const isWeekendDay = isWeekend(date)
-          const isSelected = isSameDay(date, selectedDate)
-          const isReserved = isDateReserved(day)
-          const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
-
-          return (
-            <button
-              key={day}
-              onClick={() => handleDateClick(day)}
-              disabled={isWeekendDay || isPast}
-              className={`
-                aspect-square rounded-lg p-1 sm:p-2 text-xs sm:text-sm font-medium transition-all
-                ${
-                  isSelected
-                    ? 'bg-blue-600 text-white scale-110 shadow-lg'
-                    : isWeekendDay
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : isPast
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : isReserved
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-white text-gray-700 hover:bg-blue-100 hover:scale-105'
-                }
-              `}
-            >
-              {day}
-            </button>
-          )
-        })}
+            return (
+              <button
+                key={day}
+                onClick={() => handleDateClick(day)}
+                disabled={isWeekendDay || isPast}
+                className={`
+                  flex flex-col items-center justify-center rounded-xl p-2 sm:p-3 min-w-[60px] sm:min-w-[70px] transition-all
+                  ${
+                    isSelected
+                      ? 'bg-blue-600 text-white scale-105 shadow-lg ring-2 ring-blue-400'
+                      : isWeekendDay
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : isPast
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : isReserved
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105'
+                      : 'bg-white text-gray-700 hover:bg-blue-100 hover:scale-105 shadow-sm'
+                  }
+                `}
+              >
+                <span className="text-[10px] sm:text-xs font-medium opacity-75 mb-1">
+                  {dayName}
+                </span>
+                <span className="text-lg sm:text-2xl font-bold">
+                  {day}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div className="mt-3 sm:mt-6 space-y-1 sm:space-y-2 text-xs">
