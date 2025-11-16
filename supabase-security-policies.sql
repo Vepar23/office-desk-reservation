@@ -107,14 +107,19 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_desk_elements_status ON desk_elements(status);
 
 -- 2. Dodaj constraint-e za data integrity:
-ALTER TABLE reservations 
-  ADD CONSTRAINT check_date_format 
-  CHECK (date ~ '^\d{4}-\d{2}-\d{2}$');
 
--- 3. Dodaj constraint za username:
-ALTER TABLE users 
-  ADD CONSTRAINT check_username_length 
-  CHECK (length(username) >= 3);
+-- Constraint za username dužinu (ako već ne postoji)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'check_username_length'
+    ) THEN
+        ALTER TABLE users 
+        ADD CONSTRAINT check_username_length 
+        CHECK (length(username) >= 3);
+    END IF;
+END $$;
 
 -- ================================================================
 -- ZAVRŠENO
