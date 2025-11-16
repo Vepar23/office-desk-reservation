@@ -43,35 +43,9 @@ export default function OfficeMap({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
-
-  // Reference dimensions (desktop size)
-  const REFERENCE_WIDTH = 1200
-  const REFERENCE_HEIGHT = 700
-
-  // Calculate scale based on container size
-  useEffect(() => {
-    const updateScale = () => {
-      if (!containerRef.current) return
-      const containerWidth = containerRef.current.clientWidth
-      const containerHeight = containerRef.current.clientHeight
-      
-      // Calculate scale based on container width (responsive)
-      const scaleX = containerWidth / REFERENCE_WIDTH
-      const scaleY = containerHeight / REFERENCE_HEIGHT
-      const newScale = Math.min(scaleX, scaleY)
-      
-      setScale(newScale)
-    }
-
-    updateScale()
-    window.addEventListener('resize', updateScale)
-    return () => window.removeEventListener('resize', updateScale)
-  }, [])
-
-  // Helper function to convert coordinates
-  const scalePosition = (value: number) => value * scale
-  const unscalePosition = (value: number) => value / scale
+  // Fixed map dimensions (no scaling - use scrolling instead)
+  const MAP_WIDTH = 1200
+  const MAP_HEIGHT = 800
 
   const getDeskStatus = (desk: Desk) => {
     if (desk.status === 'permanently_occupied') return 'gray'
@@ -288,17 +262,18 @@ export default function OfficeMap({
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-2 sm:p-4 h-full">
+      {/* Mobile Scroll Hint */}
+      <div className="mb-2 sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700 text-center">
+        👆 Scrollaj mapu u svim smjerovima da vidiš sve pozicije
+      </div>
+      
       <div
         ref={containerRef}
-        className="relative w-full h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] max-h-[90vh] border-2 border-gray-200 rounded-lg overflow-hidden touch-none"
+        className="relative w-full h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] max-h-[90vh] border-2 border-gray-200 rounded-lg overflow-auto touch-auto"
         style={{
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',
           userSelect: 'none',
           WebkitUserSelect: 'none',
+          cursor: isAdmin ? 'default' : 'grab',
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -306,22 +281,19 @@ export default function OfficeMap({
         onTouchStart={(e) => {
           if (!isAdmin && desks.length > 0) {
             const touch = e.touches[0]
-            const rect = containerRef.current?.getBoundingClientRect()
-            if (!rect) return
+            const innerDiv = e.currentTarget.querySelector('div')
+            if (!innerDiv) return
+            const rect = innerDiv.getBoundingClientRect()
 
-            const x = touch.clientX - rect.left
-            const y = touch.clientY - rect.top
-
-            // Find desk at touch position (unscale touch coordinates)
-            const unscaledX = unscalePosition(x)
-            const unscaledY = unscalePosition(y)
+            const x = touch.clientX - rect.left + e.currentTarget.scrollLeft
+            const y = touch.clientY - rect.top + e.currentTarget.scrollTop
             
             const touchedDesk = desks.find((desk) => {
               return (
-                unscaledX >= desk.x &&
-                unscaledX <= desk.x + desk.width &&
-                unscaledY >= desk.y &&
-                unscaledY <= desk.y + desk.height
+                x >= desk.x &&
+                x <= desk.x + desk.width &&
+                y >= desk.y &&
+                y <= desk.y + desk.height
               )
             })
 
@@ -339,15 +311,24 @@ export default function OfficeMap({
           }
         }}
       >
+        {/* Inner container with fixed dimensions for scrolling */}
+        <div
+          className="relative"
+          style={{
+            width: `${MAP_WIDTH}px`,
+            height: `${MAP_HEIGHT}px`,
+            backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',
+            minWidth: `${MAP_WIDTH}px`,
+            minHeight: `${MAP_HEIGHT}px`,
+          }}
+        >
         {desks.map((desk) => {
           const status = getDeskStatus(desk)
           const isSelected = selectedDesk === desk.id
-          
-          // Scale positions and sizes for responsive display
-          const scaledX = scalePosition(desk.x)
-          const scaledY = scalePosition(desk.y)
-          const scaledWidth = scalePosition(desk.width)
-          const scaledHeight = scalePosition(desk.height)
           
           return (
             <div
@@ -358,13 +339,13 @@ export default function OfficeMap({
                 isAdmin ? 'cursor-move' : 'cursor-pointer'
               }`}
               style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`,
+                left: `${desk.x}px`,
+                top: `${desk.y}px`,
+                width: `${desk.width}px`,
+                height: `${desk.height}px`,
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
-                fontSize: `${Math.max(10, scaledWidth / 6)}px`, // Responsive font size
+                fontSize: `${Math.max(12, desk.width / 6)}px`,
               }}
               onMouseDown={(e) => {
                 if (isAdmin) {
@@ -379,10 +360,10 @@ export default function OfficeMap({
                 }
               }}
             >
-              <div className="text-center pointer-events-none" style={{ fontSize: `${Math.max(10, scaledWidth / 5)}px` }}>
+              <div className="text-center pointer-events-none" style={{ fontSize: `${Math.max(12, desk.width / 5)}px` }}>
                 <div>{desk.desk_number}</div>
                 {isAdmin && isSelected && (
-                  <div className="mt-1 opacity-75" style={{ fontSize: `${Math.max(8, scaledWidth / 8)}px` }}>
+                  <div className="mt-1 opacity-75" style={{ fontSize: `${Math.max(10, desk.width / 8)}px` }}>
                     {desk.width}x{desk.height}
                   </div>
                 )}
@@ -445,21 +426,22 @@ export default function OfficeMap({
           )
         })}
 
-        {desks.length === 0 && !isAdmin && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-gray-400 text-lg">
-              Admin još nije kreirao mjesta za rezervaciju
-            </p>
-          </div>
-        )}
+          {desks.length === 0 && !isAdmin && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-gray-400 text-lg">
+                Admin još nije kreirao mjesta za rezervaciju
+              </p>
+            </div>
+          )}
 
-        {desks.length === 0 && isAdmin && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-gray-400 text-lg">
-              Kliknite "Dodaj stol" za kreiranje mjesta
-            </p>
-          </div>
-        )}
+          {desks.length === 0 && isAdmin && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-gray-400 text-lg">
+                Kliknite "Dodaj stol" za kreiranje mjesta
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-2 sm:mt-4 space-y-2 sm:space-y-3">
