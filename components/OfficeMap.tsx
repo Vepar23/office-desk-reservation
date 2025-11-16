@@ -43,10 +43,38 @@ export default function OfficeMap({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Mobile zoom functionality
+  const [zoom, setZoom] = useState(1)
+  const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null)
+  
   // Fixed map dimensions (no scaling - use scrolling instead)
-  // Desktop: large map size, Mobile: scrollable
+  // Desktop: large map size, Mobile: scrollable + zoomable
   const MAP_WIDTH = 1600
   const MAP_HEIGHT = 1000
+
+  // Zoom functions
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev + 0.25, 3)) // Max zoom 3x
+  }
+
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(prev - 0.25, 0.5)) // Min zoom 0.5x
+  }
+
+  const handleZoomReset = () => {
+    setZoom(1)
+  }
+
+  // Calculate distance between two touch points
+  const getTouchDistance = (touches: React.TouchList) => {
+    if (touches.length < 2) return null
+    const touch1 = touches[0]
+    const touch2 = touches[1]
+    const dx = touch1.clientX - touch2.clientX
+    const dy = touch1.clientY - touch2.clientY
+    return Math.sqrt(dx * dx + dy * dy)
+  }
 
   const getDeskStatus = (desk: Desk) => {
     if (desk.status === 'permanently_occupied') return 'gray'
@@ -272,6 +300,33 @@ export default function OfficeMap({
       <div className="mb-2 sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700 text-center">
         👆 Scrollaj mapu u svim smjerovima da vidiš sve pozicije
       </div>
+
+      {/* Mobile Zoom Controls */}
+      <div className="mb-2 sm:hidden flex items-center justify-center gap-2">
+        <button
+          onClick={handleZoomOut}
+          className="bg-blue-600 text-white rounded-lg px-3 py-2 font-bold text-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          disabled={zoom <= 0.5}
+        >
+          −
+        </button>
+        <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 min-w-[60px] text-center">
+          {Math.round(zoom * 100)}%
+        </div>
+        <button
+          onClick={handleZoomReset}
+          className="bg-gray-600 text-white rounded-lg px-3 py-2 text-xs hover:bg-gray-700 active:bg-gray-800 transition"
+        >
+          Reset
+        </button>
+        <button
+          onClick={handleZoomIn}
+          className="bg-blue-600 text-white rounded-lg px-3 py-2 font-bold text-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          disabled={zoom >= 3}
+        >
+          +
+        </button>
+      </div>
       
       <div
         ref={containerRef}
@@ -285,14 +340,21 @@ export default function OfficeMap({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onTouchStart={(e) => {
-          if (!isAdmin && desks.length > 0) {
+          // Pinch zoom detection
+          if (e.touches.length === 2) {
+            const distance = getTouchDistance(e.touches)
+            setLastTouchDistance(distance)
+            return
+          }
+
+          if (!isAdmin && desks.length > 0 && e.touches.length === 1) {
             const touch = e.touches[0]
             const innerDiv = e.currentTarget.querySelector('div')
             if (!innerDiv) return
             const rect = innerDiv.getBoundingClientRect()
 
-            const x = touch.clientX - rect.left + e.currentTarget.scrollLeft
-            const y = touch.clientY - rect.top + e.currentTarget.scrollTop
+            const x = (touch.clientX - rect.left + e.currentTarget.scrollLeft) / zoom
+            const y = (touch.clientY - rect.top + e.currentTarget.scrollTop) / zoom
             
             const touchedDesk = desks.find((desk) => {
               return (
@@ -308,8 +370,25 @@ export default function OfficeMap({
             }
           }
         }}
-        onTouchEnd={() => {
-          if (!isAdmin && selectedDesk) {
+        onTouchMove={(e) => {
+          // Handle pinch zoom
+          if (e.touches.length === 2 && lastTouchDistance !== null) {
+            e.preventDefault()
+            const currentDistance = getTouchDistance(e.touches)
+            if (currentDistance) {
+              const scale = currentDistance / lastTouchDistance
+              setZoom((prev) => Math.max(0.5, Math.min(3, prev * scale)))
+              setLastTouchDistance(currentDistance)
+            }
+          }
+        }}
+        onTouchEnd={(e) => {
+          // Reset touch distance when pinch ends
+          if (e.touches.length < 2) {
+            setLastTouchDistance(null)
+          }
+
+          if (!isAdmin && selectedDesk && e.touches.length === 0) {
             const desk = desks.find((d) => d.id === selectedDesk)
             if (desk) {
               handleDeskClick(desk)
@@ -317,21 +396,28 @@ export default function OfficeMap({
           }
         }}
       >
-        {/* Inner container with fixed dimensions for scrolling */}
+        {/* Wrapper for zoom transform */}
         <div
-          className="relative"
           style={{
-            width: `${MAP_WIDTH}px`,
-            height: `${MAP_HEIGHT}px`,
-            backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',
-            minWidth: `${MAP_WIDTH}px`,
-            minHeight: `${MAP_HEIGHT}px`,
+            width: `${MAP_WIDTH * zoom}px`,
+            height: `${MAP_HEIGHT * zoom}px`,
           }}
         >
+          {/* Inner container with fixed dimensions for scrolling and zoom */}
+          <div
+            className="relative"
+            style={{
+              width: `${MAP_WIDTH}px`,
+              height: `${MAP_HEIGHT}px`,
+              backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+            }}
+          >
         {desks.map((desk) => {
           const status = getDeskStatus(desk)
           const isSelected = selectedDesk === desk.id
@@ -460,6 +546,7 @@ export default function OfficeMap({
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
 
