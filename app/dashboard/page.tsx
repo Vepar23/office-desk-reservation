@@ -361,106 +361,107 @@ export default function DashboardPage() {
 
             {/* Reservations List - Right - Desktop only */}
             <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Moje Rezervacije
-              </h2>
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                  Moje Rezervacije
+                </h2>
 
-              {reservations.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  Nemate aktivnih rezervacija
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {reservations
-                    .sort(
-                      (a, b) =>
-                        parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
-                    )
-                    .map((reservation) => {
-                      const date = parseLocalDate(reservation.date)
-                      const isPast =
-                        date < new Date(new Date().setHours(0, 0, 0, 0))
+                {reservations.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">
+                    Nemate aktivnih rezervacija
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {reservations
+                      .sort(
+                        (a, b) =>
+                          parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()
+                      )
+                      .map((reservation) => {
+                        const date = parseLocalDate(reservation.date)
+                        const isPast =
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
 
-                      return (
-                        <div
-                          key={reservation.id}
-                          className={`p-4 rounded-lg border-2 ${
-                            isPast
-                              ? 'bg-gray-50 border-gray-200'
-                              : 'bg-blue-50 border-blue-200'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-semibold text-gray-800">
-                                Mjesto {reservation.desk_number}
-                              </p>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {new Intl.DateTimeFormat('hr-HR', {
-                                  weekday: 'short',
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                }).format(date)}
-                              </p>
+                        return (
+                          <div
+                            key={reservation.id}
+                            className={`p-4 rounded-lg border-2 ${
+                              isPast
+                                ? 'bg-gray-50 border-gray-200'
+                                : 'bg-blue-50 border-blue-200'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-semibold text-gray-800">
+                                  Mjesto {reservation.desk_number}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {new Intl.DateTimeFormat('hr-HR', {
+                                    weekday: 'short',
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric',
+                                  }).format(date)}
+                                </p>
+                              </div>
+                              {!isPast && (
+                                <button
+                                  onClick={() =>
+                                    handleCancelReservation(reservation.id)
+                                  }
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Otkaži
+                                </button>
+                              )}
                             </div>
-                            {!isPast && (
-                              <button
-                                onClick={() =>
-                                  handleCancelReservation(reservation.id)
-                                }
-                                className="text-red-600 hover:text-red-800 text-sm font-medium"
-                              >
-                                Otkaži
-                              </button>
+                            {isPast && (
+                              <span className="text-xs text-gray-500 mt-2 block">
+                                Završeno
+                              </span>
                             )}
                           </div>
-                          {isPast && (
-                            <span className="text-xs text-gray-500 mt-2 block">
-                              Završeno
-                            </span>
-                          )}
-                        </div>
-                      )
-                    })}
-                </div>
-              )}
-            </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </div>
 
-            {/* Today's reservations */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Rezervacije za {formatDate(selectedDate)}
-              </h2>
+              {/* Today's reservations */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                  Rezervacije za {formatDate(selectedDate)}
+                </h2>
 
-              {allReservations.filter((r) => r.date === formatDate(selectedDate))
-                .length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  Nema rezervacija za odabrani dan
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {allReservations
-                    .filter((r) => r.date === formatDate(selectedDate))
-                    .map((reservation) => {
-                      const desk = desks.find((d) => d.id === reservation.desk_id)
-                      return (
-                        <div
-                          key={reservation.id}
-                          className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <p className="font-medium text-gray-800">
-                            Mjesto {desk?.desk_number}
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {reservation.username || 'Nepoznato'}
-                          </p>
-                        </div>
-                      )
-                    })}
-                </div>
-              )}
+                {allReservations.filter((r) => r.date === formatDate(selectedDate))
+                  .length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">
+                    Nema rezervacija za odabrani dan
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {allReservations
+                      .filter((r) => r.date === formatDate(selectedDate))
+                      .map((reservation) => {
+                        const desk = desks.find((d) => d.id === reservation.desk_id)
+                        return (
+                          <div
+                            key={reservation.id}
+                            className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <p className="font-medium text-gray-800">
+                              Mjesto {desk?.desk_number}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {reservation.username || 'Nepoznato'}
+                            </p>
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
