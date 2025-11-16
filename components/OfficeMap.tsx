@@ -95,7 +95,7 @@ export default function OfficeMap({
           updated = true
           break
         case 'ArrowRight':
-          newX = Math.min(containerRef.current?.clientWidth || 1000 - desk.width, desk.x + step)
+          newX = Math.min(MAP_WIDTH - desk.width, desk.x + step)
           updated = true
           break
         case 'ArrowUp':
@@ -103,7 +103,7 @@ export default function OfficeMap({
           updated = true
           break
         case 'ArrowDown':
-          newY = Math.min(containerRef.current?.clientHeight || 600 - desk.height, desk.y + step)
+          newY = Math.min(MAP_HEIGHT - desk.height, desk.y + step)
           updated = true
           break
         case '+':
@@ -142,12 +142,14 @@ export default function OfficeMap({
 
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
+    const scrollLeft = containerRef.current.scrollLeft
+    const scrollTop = containerRef.current.scrollTop
 
     setIsDragging(true)
     setSelectedDesk(desk.id)
     setDragOffset({
-      x: e.clientX - rect.left - desk.x,
-      y: e.clientY - rect.top - desk.y,
+      x: e.clientX - rect.left + scrollLeft - desk.x,
+      y: e.clientY - rect.top + scrollTop - desk.y,
     })
   }
 
@@ -190,38 +192,38 @@ export default function OfficeMap({
 
       switch (resizeHandle) {
         case 'se': // Southeast
-          newWidth = Math.max(40, Math.min(200, initialResize.width + deltaX))
-          newHeight = Math.max(40, Math.min(200, initialResize.height + deltaY))
+          newWidth = Math.max(40, Math.min(200, Math.min(MAP_WIDTH - desk.x, initialResize.width + deltaX)))
+          newHeight = Math.max(40, Math.min(200, Math.min(MAP_HEIGHT - desk.y, initialResize.height + deltaY)))
           break
         case 'sw': // Southwest
           newWidth = Math.max(40, Math.min(200, initialResize.width - deltaX))
-          newHeight = Math.max(40, Math.min(200, initialResize.height + deltaY))
-          newX = desk.x + (desk.width - newWidth)
+          newHeight = Math.max(40, Math.min(200, Math.min(MAP_HEIGHT - desk.y, initialResize.height + deltaY)))
+          newX = Math.max(0, desk.x + (desk.width - newWidth))
           break
         case 'ne': // Northeast
-          newWidth = Math.max(40, Math.min(200, initialResize.width + deltaX))
+          newWidth = Math.max(40, Math.min(200, Math.min(MAP_WIDTH - desk.x, initialResize.width + deltaX)))
           newHeight = Math.max(40, Math.min(200, initialResize.height - deltaY))
-          newY = desk.y + (desk.height - newHeight)
+          newY = Math.max(0, desk.y + (desk.height - newHeight))
           break
         case 'nw': // Northwest
           newWidth = Math.max(40, Math.min(200, initialResize.width - deltaX))
           newHeight = Math.max(40, Math.min(200, initialResize.height - deltaY))
-          newX = desk.x + (desk.width - newWidth)
-          newY = desk.y + (desk.height - newHeight)
+          newX = Math.max(0, desk.x + (desk.width - newWidth))
+          newY = Math.max(0, desk.y + (desk.height - newHeight))
           break
         case 'n': // North
           newHeight = Math.max(40, Math.min(200, initialResize.height - deltaY))
-          newY = desk.y + (desk.height - newHeight)
+          newY = Math.max(0, desk.y + (desk.height - newHeight))
           break
         case 's': // South
-          newHeight = Math.max(40, Math.min(200, initialResize.height + deltaY))
+          newHeight = Math.max(40, Math.min(200, Math.min(MAP_HEIGHT - desk.y, initialResize.height + deltaY)))
           break
         case 'e': // East
-          newWidth = Math.max(40, Math.min(200, initialResize.width + deltaX))
+          newWidth = Math.max(40, Math.min(200, Math.min(MAP_WIDTH - desk.x, initialResize.width + deltaX)))
           break
         case 'w': // West
           newWidth = Math.max(40, Math.min(200, initialResize.width - deltaX))
-          newX = desk.x + (desk.width - newWidth)
+          newX = Math.max(0, desk.x + (desk.width - newWidth))
           break
       }
 
@@ -234,11 +236,14 @@ export default function OfficeMap({
       const desk = desks.find((d) => d.id === selectedDesk)
       if (!desk || !onDeskUpdate) return
 
-      const mouseX = e.clientX - rect.left
-      const mouseY = e.clientY - rect.top
+      const scrollLeft = containerRef.current.scrollLeft
+      const scrollTop = containerRef.current.scrollTop
 
-      const x = Math.max(0, Math.min(mouseX - dragOffset.x, rect.width - desk.width))
-      const y = Math.max(0, Math.min(mouseY - dragOffset.y, rect.height - desk.height))
+      const mouseX = e.clientX - rect.left + scrollLeft
+      const mouseY = e.clientY - rect.top + scrollTop
+
+      const x = Math.max(0, Math.min(mouseX - dragOffset.x, MAP_WIDTH - desk.width))
+      const y = Math.max(0, Math.min(mouseY - dragOffset.y, MAP_HEIGHT - desk.height))
 
       onDeskUpdate({ ...desk, x, y })
     }
@@ -363,12 +368,25 @@ export default function OfficeMap({
             >
               <div className="text-center pointer-events-none" style={{ fontSize: `${Math.max(12, desk.width / 5)}px` }}>
                 <div>{desk.desk_number}</div>
-                {isAdmin && isSelected && (
-                  <div className="mt-1 opacity-75" style={{ fontSize: `${Math.max(10, desk.width / 8)}px` }}>
-                    {desk.width}x{desk.height}
-                  </div>
-                )}
               </div>
+
+              {/* Tooltip with position and dimensions - positioned above the desk */}
+              {isAdmin && isSelected && (
+                <div 
+                  className="absolute left-1/2 -translate-x-1/2 -top-10 bg-gray-900 text-white px-3 py-1.5 rounded-lg shadow-xl text-xs font-semibold whitespace-nowrap z-[100] pointer-events-none"
+                  style={{
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>📍 ({Math.round(desk.x)}, {Math.round(desk.y)})</span>
+                    <span className="text-gray-400">|</span>
+                    <span>📐 {desk.width}×{desk.height}</span>
+                  </div>
+                  {/* Arrow pointing down */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                </div>
+              )}
 
               {/* Delete Button */}
               {isAdmin && (
