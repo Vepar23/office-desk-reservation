@@ -35,69 +35,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // VAŽNO: Hardcoded default admin pristup
-    if (username === 'admin' && password === 'test123') {
-      // Pokušaj da nađeš ili kreiraj admin korisnika u Supabase
-      if (supabase) {
-        try {
-          // Provjeri da li admin postoji u bazi
-          const { data: existingAdmin, error: fetchError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('username', 'admin')
-            .single()
-
-          if (existingAdmin) {
-            // Admin već postoji, proveri lozinku
-            const isValid = await verifyPassword('test123', existingAdmin.password_hash)
-            if (isValid) {
-              const { password_hash, ...adminWithoutPassword } = existingAdmin
-              return NextResponse.json({
-                success: true,
-                user: adminWithoutPassword,
-              }, { status: 200 })
-            }
-          }
-
-          // Admin ne postoji ili lozinka ne odgovara - kreiraj novog
-          const password_hash = await hashPassword('test123')
-
-          const { data: newAdmin, error: createError } = await supabase
-            .from('users')
-            .insert([{
-              username: 'admin',
-              password_hash: password_hash,
-              is_admin: true,
-            }])
-            .select()
-            .single()
-
-          if (!createError && newAdmin) {
-            const { password_hash: _, ...adminWithoutPassword } = newAdmin
-            return NextResponse.json({
-              success: true,
-              user: adminWithoutPassword,
-            }, { status: 200 })
-          }
-        } catch (error) {
-          console.log('Admin auto-create error:', error)
-          // Nastavi sa fallback-om
-        }
-      }
-
-      // Fallback: vraća in-memory admin (bez UUID validacije)
-      const adminUser = {
-        id: 'admin-default',
-        username: 'admin',
-        is_admin: true,
-      }
-
-      return NextResponse.json({
-        success: true,
-        user: adminUser,
-      }, { status: 200 })
-    }
-
     let user: any = null
 
     if (supabase) {
