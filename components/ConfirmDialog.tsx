@@ -23,10 +23,9 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop */}
+      {/* Backdrop - disabled click on mobile to prevent accidental cancel */}
       <div
         className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
-        onClick={onCancel}
       />
 
       {/* Dialog */}
@@ -58,17 +57,23 @@ export default function ConfirmDialog({
         {/* Message */}
         <p className="text-gray-600 text-center mb-6">{message}</p>
 
-        {/* Buttons */}
-        <div className="flex gap-3">
+        {/* Buttons - larger touch area for mobile */}
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition"
+            onClick={(e) => {
+              e.stopPropagation()
+              onCancel()
+            }}
+            className="flex-1 px-4 py-4 sm:py-3 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-semibold rounded-lg transition text-base sm:text-sm"
           >
             {cancelText}
           </button>
           <button
-            onClick={onConfirm}
-            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
+            onClick={(e) => {
+              e.stopPropagation()
+              onConfirm()
+            }}
+            className="flex-1 px-4 py-4 sm:py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-lg transition text-base sm:text-sm"
           >
             {confirmText}
           </button>

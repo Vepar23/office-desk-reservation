@@ -44,9 +44,11 @@ export default function OfficeMap({
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   
-  // Mobile zoom functionality
-  const [zoom, setZoom] = useState(1)
+  // Mobile zoom functionality - default 0.5 (50%) for mobile
+  const [zoom, setZoom] = useState(0.5)
   const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null)
+  const [touchStartTime, setTouchStartTime] = useState<number>(0)
+  const [touchMoved, setTouchMoved] = useState(false)
   
   // Fixed map dimensions (no scaling - use scrolling instead)
   // Desktop: large map size, Mobile: scrollable + zoomable
@@ -63,7 +65,7 @@ export default function OfficeMap({
   }
 
   const handleZoomReset = () => {
-    setZoom(1)
+    setZoom(0.5) // Reset to 50% (default for mobile)
   }
 
   // Calculate distance between two touch points
@@ -296,32 +298,32 @@ export default function OfficeMap({
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-2 sm:p-4 h-full">
-      {/* Mobile Scroll Hint */}
+      {/* Mobile Instructions */}
       <div className="mb-2 sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700 text-center">
-        👆 Scrollaj mapu u svim smjerovima da vidiš sve pozicije
+        👆 Tap na stol za rezervaciju • Pinch za zoom • Scrollaj za navigaciju
       </div>
 
-      {/* Mobile Zoom Controls */}
+      {/* Mobile Zoom Controls - larger touch targets */}
       <div className="mb-2 sm:hidden flex items-center justify-center gap-2">
         <button
           onClick={handleZoomOut}
-          className="bg-blue-600 text-white rounded-lg px-3 py-2 font-bold text-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          className="bg-blue-600 text-white rounded-lg px-4 py-3 font-bold text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[48px]"
           disabled={zoom <= 0.5}
         >
           −
         </button>
-        <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 min-w-[60px] text-center">
+        <div className="bg-gray-100 px-4 py-3 rounded-lg text-sm font-semibold text-gray-700 min-w-[70px] text-center">
           {Math.round(zoom * 100)}%
         </div>
         <button
           onClick={handleZoomReset}
-          className="bg-gray-600 text-white rounded-lg px-3 py-2 text-xs hover:bg-gray-700 active:bg-gray-800 transition"
+          className="bg-gray-600 text-white rounded-lg px-4 py-3 text-sm hover:bg-gray-700 active:bg-gray-800 transition whitespace-nowrap"
         >
-          Reset
+          50%
         </button>
         <button
           onClick={handleZoomIn}
-          className="bg-blue-600 text-white rounded-lg px-3 py-2 font-bold text-lg hover:bg-blue-700 active:bg-blue-800 transition"
+          className="bg-blue-600 text-white rounded-lg px-4 py-3 font-bold text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[48px]"
           disabled={zoom >= 3}
         >
           +
@@ -340,6 +342,9 @@ export default function OfficeMap({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onTouchStart={(e) => {
+          setTouchStartTime(Date.now())
+          setTouchMoved(false)
+          
           // Pinch zoom detection
           if (e.touches.length === 2) {
             const distance = getTouchDistance(e.touches)
@@ -367,10 +372,14 @@ export default function OfficeMap({
 
             if (touchedDesk) {
               setSelectedDesk(touchedDesk.id)
+            } else {
+              setSelectedDesk(null)
             }
           }
         }}
         onTouchMove={(e) => {
+          setTouchMoved(true)
+          
           // Handle pinch zoom
           if (e.touches.length === 2 && lastTouchDistance !== null) {
             e.preventDefault()
@@ -388,12 +397,32 @@ export default function OfficeMap({
             setLastTouchDistance(null)
           }
 
-          if (!isAdmin && selectedDesk && e.touches.length === 0) {
+          // Only trigger desk click if:
+          // 1. Not admin
+          // 2. A desk is selected
+          // 3. No touches remaining
+          // 4. Touch was quick (< 300ms) and minimal movement
+          const touchDuration = Date.now() - touchStartTime
+          
+          if (
+            !isAdmin && 
+            selectedDesk && 
+            e.touches.length === 0 &&
+            !touchMoved &&
+            touchDuration < 300
+          ) {
             const desk = desks.find((d) => d.id === selectedDesk)
             if (desk) {
               handleDeskClick(desk)
             }
           }
+          
+          // Reset after some delay to prevent accidental clicks
+          setTimeout(() => {
+            if (!isAdmin) {
+              setSelectedDesk(null)
+            }
+          }, 100)
         }}
       >
         {/* Wrapper for zoom transform */}
