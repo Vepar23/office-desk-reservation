@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, username, is_admin, created_at')
+      .select('id, username, is_admin, locked, failed_login_attempts, created_at')
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

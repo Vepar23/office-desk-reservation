@@ -13,10 +13,13 @@ export default function LoginPage() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showWarning, setShowWarning] = useState(false)
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setShowWarning(false)
     setLoading(true)
 
     try {
@@ -31,6 +34,16 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Provjeri da li ima attemptsRemaining u responsu
+        if (data.attemptsRemaining !== undefined) {
+          setAttemptsRemaining(data.attemptsRemaining)
+          
+          // Ako ima 3 ili manje pokušaja, prikaži warning
+          if (data.attemptsRemaining >= 0 && data.attemptsRemaining <= 2) {
+            setShowWarning(true)
+          }
+        }
+        
         throw new Error(data.error || 'Prijava nije uspjela')
       }
 
@@ -101,6 +114,23 @@ export default function LoginPage() {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+
+          {showWarning && attemptsRemaining !== null && (
+            <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-800 px-4 py-3 rounded-lg text-sm animate-pulse">
+              <div className="flex items-start gap-2">
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <p className="font-bold">UPOZORENJE!</p>
+                  <p className="mt-1">
+                    Preostalo pokušaja: <strong>{attemptsRemaining}</strong>
+                  </p>
+                  <p className="mt-1 text-xs">
+                    Nakon 5 neuspjelih pokušaja, vaš account će biti automatski zaključan i morat ćete kontaktirati administratora.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
