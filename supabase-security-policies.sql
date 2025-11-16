@@ -12,7 +12,7 @@
 -- ================================================================
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE desks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE desk_elements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE office_map ENABLE ROW LEVEL SECURITY;
 
@@ -30,12 +30,12 @@ CREATE POLICY "Service role can do everything on users" ON users
   WITH CHECK (true);
 
 -- ================================================================
--- 3. DESKS TABELA
+-- 3. DESK_ELEMENTS TABELA
 -- ================================================================
 
-DROP POLICY IF EXISTS "Service role can do everything on desks" ON desks;
+DROP POLICY IF EXISTS "Service role can do everything on desk_elements" ON desk_elements;
 
-CREATE POLICY "Service role can do everything on desks" ON desks
+CREATE POLICY "Service role can do everything on desk_elements" ON desk_elements
   FOR ALL
   USING (true)
   WITH CHECK (true);
@@ -75,7 +75,7 @@ CREATE POLICY "Service role can do everything on office_map" ON office_map
 -- Backend MORA da proveri:
 --   - Da korisnik može da vidi samo svoje rezervacije
 --   - Da korisnik može da briše samo svoje rezervacije
---   - Da samo admin može da briše/menja korisnike i desks
+--   - Da samo admin može da briše/menja korisnike i desk_elements
 --   - Da samo admin može da upload-uje office map
 
 -- ================================================================
@@ -86,7 +86,7 @@ CREATE POLICY "Service role can do everything on office_map" ON office_map
 SELECT tablename, rowsecurity 
 FROM pg_tables 
 WHERE schemaname = 'public' 
-AND tablename IN ('users', 'desks', 'reservations', 'office_map');
+AND tablename IN ('users', 'desk_elements', 'reservations', 'office_map');
 
 -- Svi treba da imaju rowsecurity = true
 
@@ -99,11 +99,12 @@ WHERE schemaname = 'public';
 -- DODATNE SIGURNOSNE MERE
 -- ================================================================
 
--- 1. Kreiraj indekse za brže upite:
+-- 1. Kreiraj indekse za brže upite (ako već ne postoje):
 CREATE INDEX IF NOT EXISTS idx_reservations_user_id ON reservations(user_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_desk_id ON reservations(desk_id);
 CREATE INDEX IF NOT EXISTS idx_reservations_date ON reservations(date);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_desk_elements_status ON desk_elements(status);
 
 -- 2. Dodaj constraint-e za data integrity:
 ALTER TABLE reservations 
