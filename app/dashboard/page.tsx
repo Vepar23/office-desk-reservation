@@ -336,9 +336,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Desktop Layout */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-6">
-          {/* Calendar - Left */}
-          <div className="lg:col-span-2">
+        <div className="hidden lg:block space-y-6">
+          {/* Calendar - Full Width Above Map */}
+          <div>
             <Calendar
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
@@ -346,19 +346,21 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Office Map - Center - 40% wider */}
-          <div className="lg:col-span-8">
-            <OfficeMap
-              desks={desks}
-              backgroundImage={officeMap}
-              selectedDate={selectedDate}
-              onDeskClick={handleDeskClick}
-              reservations={allReservations}
-            />
-          </div>
+          {/* Office Map and Reservations - Side by Side */}
+          <div className="grid lg:grid-cols-12 gap-6">
+            {/* Office Map - Takes most space */}
+            <div className="lg:col-span-10">
+              <OfficeMap
+                desks={desks}
+                backgroundImage={officeMap}
+                selectedDate={selectedDate}
+                onDeskClick={handleDeskClick}
+                reservations={allReservations}
+              />
+            </div>
 
-          {/* Reservations List - Right - Desktop only */}
-          <div className="lg:col-span-2">
+            {/* Reservations List - Right - Desktop only */}
+            <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Moje Rezervacije

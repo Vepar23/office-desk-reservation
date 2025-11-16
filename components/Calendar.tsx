@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { isWeekend, isSameDay } from '@/lib/utils'
 
 interface CalendarProps {
@@ -15,6 +15,8 @@ export default function Calendar({
   reservedDates = [],
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const todayRef = useRef<HTMLButtonElement>(null)
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -44,6 +46,26 @@ export default function Calendar({
   ]
 
   const dayNames = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub']
+
+  // Auto-scroll to today's date
+  useEffect(() => {
+    if (todayRef.current && scrollContainerRef.current) {
+      const scrollContainer = scrollContainerRef.current
+      const todayButton = todayRef.current
+      
+      // Calculate scroll position to center today's button
+      const containerWidth = scrollContainer.offsetWidth
+      const buttonLeft = todayButton.offsetLeft
+      const buttonWidth = todayButton.offsetWidth
+      
+      const scrollPosition = buttonLeft - (containerWidth / 2) + (buttonWidth / 2)
+      
+      scrollContainer.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      })
+    }
+  }, [currentMonth])
 
   const handlePrevMonth = () => {
     setCurrentMonth(
@@ -123,7 +145,7 @@ export default function Calendar({
       </div>
 
       {/* Horizontal scrollable calendar */}
-      <div className="overflow-x-auto pb-2">
+      <div ref={scrollContainerRef} className="overflow-x-auto pb-2">
         <div className="flex gap-2 sm:gap-3 min-w-max">
           {Array.from({ length: daysInMonth }).map((_, index) => {
             const day = index + 1
@@ -137,10 +159,15 @@ export default function Calendar({
             const isReserved = isDateReserved(day)
             const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
             const dayName = dayNames[date.getDay()]
+            const today = new Date()
+            const isToday = date.getDate() === today.getDate() && 
+                           date.getMonth() === today.getMonth() && 
+                           date.getFullYear() === today.getFullYear()
 
             return (
               <button
                 key={day}
+                ref={isToday ? todayRef : null}
                 onClick={() => handleDateClick(day)}
                 disabled={isWeekendDay || isPast}
                 className={`
