@@ -19,6 +19,8 @@ interface User {
   id: string
   username: string
   is_admin: boolean
+  locked?: boolean
+  failed_login_attempts?: number
   created_at: string
 }
 
@@ -53,6 +55,12 @@ export default function AdminPage() {
   const [previewUrl, setPreviewUrl] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string>('')
+
+  // Reset Password Dialog
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false)
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false)
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -163,6 +171,74 @@ export default function AdminPage() {
       fetchData()
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Greška pri brisanju')
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword) {
+      alert('Molimo unesite novu lozinku')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      alert('Lozinka mora imati najmanje 6 znakova')
+      return
+    }
+
+    setResetPasswordLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminId: user?.id,
+          targetUserId: resetPasswordUser.id,
+          newPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Greška pri resetovanju lozinke')
+      }
+
+      alert(data.message || 'Lozinka uspješno resetovana')
+      setShowResetPasswordDialog(false)
+      setResetPasswordUser(null)
+      setNewPassword('')
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Greška pri resetovanju lozinke')
+    } finally {
+      setResetPasswordLoading(false)
+    }
+  }
+
+  const handleUnlockAccount = async (targetUser: User) => {
+    if (!confirm(`Da li želite otključati account korisnika "${targetUser.username}"?`))
+      return
+
+    try {
+      const response = await fetch('/api/auth/admin/unlock-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminId: user?.id,
+          targetUserId: targetUser.id,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Greška pri otključavanju accounta')
+      }
+
+      alert(data.message || 'Account uspješno otključan')
+      fetchData()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Greška pri otključavanju accounta')
     }
   }
 
@@ -740,23 +816,57 @@ export default function AdminPage() {
                 Lista Korisnika ({users.length})
               </h2>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {users.map((user) => (
+                {users.map((userItem) => (
                   <div
-                    key={user.id}
+                    key={userItem.id}
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
                   >
-                    <div>
-                      <p className="font-semibold">{user.username}</p>
-                      <p className="text-sm text-gray-600">
-                        {user.is_admin ? 'Administrator' : 'Korisnik'}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{userItem.username}</p>
+                        {userItem.locked && (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-semibold">
+                            🔒 Zaključan
+                          </span>
+                        )}
+                        {!userItem.locked && userItem.failed_login_attempts && userItem.failed_login_attempts > 0 && (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-semibold">
+                            ⚠️ {userItem.failed_login_attempts}/5 pokušaja
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {userItem.is_admin ? 'Administrator' : 'Korisnik'}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
-                    >
-                      Obriši
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {userItem.locked && (
+                        <button
+                          onClick={() => handleUnlockAccount(userItem)}
+                          className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
+                          title="Otključaj account"
+                        >
+                          🔓 Otključaj
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setResetPasswordUser(userItem)
+                          setShowResetPasswordDialog(true)
+                        }}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                        title="Resetuj lozinku"
+                      >
+                        🔑 Lozinka
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(userItem.id)}
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+                        title="Obriši korisnika"
+                      >
+                        🗑️ Obriši
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {users.length === 0 && (
@@ -769,6 +879,55 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Reset Password Dialog */}
+      {showResetPasswordDialog && resetPasswordUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Resetuj Lozinku
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Resetovanje lozinke za korisnika: <strong>{resetPasswordUser.username}</strong>
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nova Lozinka (min 6 znakova)
+                </label>
+                <input
+                  type="text"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Unesite novu lozinku"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={resetPasswordLoading}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleResetPassword}
+                  disabled={resetPasswordLoading || !newPassword}
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
+                >
+                  {resetPasswordLoading ? 'Resetovanje...' : '✅ Potvrdi'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowResetPasswordDialog(false)
+                    setResetPasswordUser(null)
+                    setNewPassword('')
+                  }}
+                  disabled={resetPasswordLoading}
+                  className="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition disabled:bg-gray-200 disabled:cursor-not-allowed font-semibold"
+                >
+                  ❌ Otkaži
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

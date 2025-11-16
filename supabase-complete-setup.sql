@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   is_admin BOOLEAN DEFAULT false,
+  locked BOOLEAN DEFAULT false,
+  failed_login_attempts INTEGER DEFAULT 0,
+  last_login_attempt TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

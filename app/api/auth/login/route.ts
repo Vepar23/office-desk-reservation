@@ -53,6 +53,14 @@ export async function POST(request: NextRequest) {
       }
 
       user = data
+
+      // Provjeri da li je account lockovan
+      if (user.locked) {
+        return NextResponse.json(
+          { error: 'Account je zaključan zbog previše neuspjelih pokušaja logina. Kontaktiraj administratora.' },
+          { status: 403 }
+        )
+      }
     } else {
       // Fallback: in-memory storage
       user = usersMemory.find((u) => u.username === username)
@@ -69,14 +77,55 @@ export async function POST(request: NextRequest) {
     const isValid = await verifyPassword(password, user.password_hash)
 
     if (!isValid) {
+      // Failed login attempt
+      if (supabase) {
+        const newFailedAttempts = (user.failed_login_attempts || 0) + 1
+        const shouldLock = newFailedAttempts >= 5
+
+        await supabase
+          .from('users')
+          .update({
+            failed_login_attempts: newFailedAttempts,
+            locked: shouldLock,
+            last_login_attempt: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+
+        if (shouldLock) {
+          return NextResponse.json(
+            { error: 'Account je zaključan zbog previše neuspjelih pokušaja. Kontaktiraj administratora.' },
+            { status: 403 }
+          )
+        }
+
+        return NextResponse.json(
+          { 
+            error: 'Neispravno korisničko ime ili lozinka',
+            attemptsRemaining: 5 - newFailedAttempts
+          },
+          { status: 401 }
+        )
+      }
+
       return NextResponse.json(
         { error: 'Neispravno korisničko ime ili lozinka' },
         { status: 401 }
       )
     }
 
-    // Ukloni hash lozinke prije slanja
-    const { password_hash, ...userWithoutPassword } = user
+    // Uspješan login - resetuj failed attempts
+    if (supabase) {
+      await supabase
+        .from('users')
+        .update({
+          failed_login_attempts: 0,
+          last_login_attempt: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+    }
+
+    // Ukloni hash lozinke i sensitive data prije slanja
+    const { password_hash, failed_login_attempts, last_login_attempt, ...userWithoutPassword } = user
 
     return NextResponse.json(
       {
