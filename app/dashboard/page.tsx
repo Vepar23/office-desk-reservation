@@ -126,12 +126,12 @@ export default function DashboardPage() {
     if (!user) return
 
     const dateString = formatDate(selectedDate)
-    const formattedDate = new Date(selectedDate).toLocaleDateString('hr-HR', {
+    const formattedDate = new Intl.DateTimeFormat('hr-HR', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    })
+    }).format(selectedDate)
 
     // Check if already reserved
     const isReserved = allReservations.some(
@@ -336,9 +336,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Desktop Layout */}
-        <div className="hidden lg:block space-y-6">
+        <div className="hidden lg:flex lg:flex-col space-y-6">
           {/* Calendar - Full Width Above Map */}
-          <div>
+          <div className="w-full">
             <Calendar
               selectedDate={selectedDate}
               onDateSelect={handleDateSelect}
@@ -397,12 +397,12 @@ export default function DashboardPage() {
                                 Mjesto {reservation.desk_number}
                               </p>
                               <p className="text-sm text-gray-600 mt-1">
-                                {date.toLocaleDateString('hr-HR', {
+                                {new Intl.DateTimeFormat('hr-HR', {
                                   weekday: 'short',
                                   day: 'numeric',
                                   month: 'short',
                                   year: 'numeric',
-                                }).replace(/\s/g, ' ')}
+                                }).format(date)}
                               </p>
                             </div>
                             {!isPast && (
@@ -506,12 +506,12 @@ export default function DashboardPage() {
                               Mjesto {reservation.desk_number}
                             </p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {date.toLocaleDateString('hr-HR', {
+                              {new Intl.DateTimeFormat('hr-HR', {
                                 weekday: 'short',
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
-                              }).replace(/\s/g, ' ')}
+                              }).format(date)}
                             </p>
                           </div>
                           {!isPast && (
