@@ -58,14 +58,10 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (!storedUser) {
+    // Don't auto-login from localStorage - require fresh login every time
+    if (!user) {
       router.push('/login')
       return
-    }
-
-    if (!user) {
-      useAuthStore.getState().setUser(JSON.parse(storedUser))
     }
 
     fetchData()
@@ -213,8 +209,7 @@ export default function DashboardPage() {
   }
 
   const handleLogout = () => {
-    logout()
-    localStorage.removeItem('user')
+    logout() // This now also clears localStorage
     router.push('/login')
   }
 

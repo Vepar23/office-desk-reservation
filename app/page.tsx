@@ -2,20 +2,13 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/useAuthStore'
 
 export default function Home() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      useAuthStore.getState().setUser(JSON.parse(storedUser))
-      router.push('/dashboard')
-    } else {
-      router.push('/login')
-    }
+    // Don't auto-login - always redirect to login page
+    router.push('/login')
   }, [router])
 
   return (

@@ -63,21 +63,16 @@ export default function AdminPage() {
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (!storedUser) {
+    // Don't auto-login from localStorage - require fresh login
+    if (!user) {
       router.push('/login')
       return
     }
 
-    const parsedUser = JSON.parse(storedUser)
-    if (!parsedUser.is_admin) {
+    if (!user.is_admin) {
       alert('Nemate pristup admin panelu')
       router.push('/dashboard')
       return
-    }
-
-    if (!user) {
-      useAuthStore.getState().setUser(parsedUser)
     }
 
     fetchData()
@@ -386,8 +381,7 @@ export default function AdminPage() {
   }
 
   const handleLogout = () => {
-    logout()
-    localStorage.removeItem('user')
+    logout() // This now also clears localStorage
     router.push('/login')
   }
 

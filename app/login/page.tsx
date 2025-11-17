@@ -47,8 +47,7 @@ export default function LoginPage() {
         throw new Error(data.error || 'Prijava nije uspjela')
       }
 
-      // Store user in localStorage and state
-      localStorage.setItem('user', JSON.stringify(data.user))
+      // Store user in state only (no localStorage for auto-login)
       setUser(data.user)
 
       // Redirect to dashboard

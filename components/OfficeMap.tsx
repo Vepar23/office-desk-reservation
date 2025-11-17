@@ -44,8 +44,8 @@ export default function OfficeMap({
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   
-  // Mobile zoom functionality - default 0.5 (50%) for mobile
-  const [zoom, setZoom] = useState(0.5)
+  // Mobile zoom functionality - default 100% for all devices
+  const [zoom, setZoom] = useState(1)
   const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null)
   const [touchStartTime, setTouchStartTime] = useState<number>(0)
   const [touchMoved, setTouchMoved] = useState(false)
@@ -65,7 +65,7 @@ export default function OfficeMap({
   }
 
   const handleZoomReset = () => {
-    setZoom(0.5) // Reset to 50% (default for mobile)
+    setZoom(1) // Reset to 100% for all devices
   }
 
   // Calculate distance between two touch points
@@ -318,8 +318,9 @@ export default function OfficeMap({
         <button
           onClick={handleZoomReset}
           className="bg-gray-600 text-white rounded-lg px-4 py-3 text-sm hover:bg-gray-700 active:bg-gray-800 transition whitespace-nowrap"
+          title="Reset zoom"
         >
-          50%
+          ⟲
         </button>
         <button
           onClick={handleZoomIn}
