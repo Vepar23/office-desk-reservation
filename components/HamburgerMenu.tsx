@@ -12,10 +12,10 @@ export default function HamburgerMenu({ children, title }: HamburgerMenuProps) {
 
   return (
     <>
-      {/* Hamburger Button - Fixed pozicija */}
+      {/* Hamburger Button - Fixed pozicija u donjem desnom kutu */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 right-4 z-[60] lg:hidden bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all"
+        className="fixed bottom-6 right-6 z-[60] lg:hidden bg-blue-600 text-white p-4 rounded-full shadow-2xl hover:bg-blue-700 hover:scale-110 transition-all"
         aria-label="Toggle menu"
       >
         <div className="flex flex-col gap-1 w-6">
