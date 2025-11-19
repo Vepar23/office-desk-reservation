@@ -49,6 +49,8 @@ export default function OfficeMap({
   const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null)
   const [touchStartTime, setTouchStartTime] = useState<number>(0)
   const [touchMoved, setTouchMoved] = useState(false)
+  const [hoveredDesk, setHoveredDesk] = useState<string | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   
   // Fixed map dimensions (no scaling - use scrolling instead)
   // Desktop: large map size, Mobile: scrollable + zoomable
@@ -87,6 +89,17 @@ export default function OfficeMap({
     )
 
     return isReserved ? 'red' : 'green'
+  }
+
+  const getReservationForDesk = (desk: Desk) => {
+    const dateString = formatDate(selectedDate)
+    const reservation = reservations.find(
+      (r) => r.desk_id === desk.id && r.date === dateString
+    )
+    if (reservation) {
+      console.log('Reservation found:', reservation)
+    }
+    return reservation
   }
 
   const getStatusColor = (status: string) => {
@@ -451,6 +464,8 @@ export default function OfficeMap({
         {desks.map((desk) => {
           const status = getDeskStatus(desk)
           const isSelected = selectedDesk === desk.id
+          const reservation = getReservationForDesk(desk)
+          const isHovered = hoveredDesk === desk.id
           
           return (
             <div
@@ -480,6 +495,20 @@ export default function OfficeMap({
                 if (!isAdmin && !isDragging && !isResizing) {
                   handleDeskClick(desk)
                 }
+              }}
+              onMouseEnter={(e) => {
+                setHoveredDesk(desk.id)
+                if (status === 'red' && reservation && containerRef.current) {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setTooltipPosition({
+                    x: rect.left + rect.width / 2,
+                    y: rect.top - 10
+                  })
+                }
+              }}
+              onMouseLeave={() => {
+                setHoveredDesk(null)
+                setTooltipPosition(null)
               }}
             >
               <div className="text-center pointer-events-none" style={{ fontSize: `${Math.max(12, desk.width / 5)}px` }}>
@@ -579,6 +608,34 @@ export default function OfficeMap({
           </div>
         </div>
       </div>
+
+      {/* Fixed position tooltip - rendered outside of transform context */}
+      {hoveredDesk && tooltipPosition && (() => {
+        const desk = desks.find((d) => d.id === hoveredDesk)
+        if (!desk) return null
+        const status = getDeskStatus(desk)
+        const reservation = getReservationForDesk(desk)
+        console.log('Tooltip check:', { status, reservation, username: reservation?.username })
+        if (status !== 'red' || !reservation) return null
+        
+        return (
+          <div 
+            className="fixed bg-red-900 text-white px-3 py-2 rounded-lg shadow-2xl text-xs font-semibold whitespace-nowrap z-[9999] pointer-events-none"
+            style={{
+              left: `${tooltipPosition.x}px`,
+              top: `${tooltipPosition.y}px`,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div className="text-center">
+              <div className="text-xs opacity-75 mb-0.5">Rezervirao:</div>
+              <div className="text-sm">{reservation.username || 'Nepoznato'}</div>
+            </div>
+            {/* Arrow pointing down */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-red-900 rotate-45"></div>
+          </div>
+        )
+      })()}
 
       <div className="mt-2 sm:mt-4 space-y-2 sm:space-y-3">
         <div className="flex gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap">

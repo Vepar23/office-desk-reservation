@@ -92,6 +92,7 @@ export default function DashboardPage() {
       // Fetch all reservations
       const reservationsResponse = await fetch('/api/reservations')
       const reservationsData = await reservationsResponse.json()
+      console.log('📊 All Reservations with usernames:', reservationsData.reservations)
       setAllReservations(reservationsData.reservations || [])
 
       // Fetch user's reservations
@@ -366,7 +367,7 @@ export default function DashboardPage() {
                     Nemate aktivnih rezervacija
                   </p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                     {reservations
                       .sort(
                         (a, b) =>
@@ -435,7 +436,7 @@ export default function DashboardPage() {
                     Nema rezervacija za odabrani dan
                   </p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                     {allReservations
                       .filter((r) => r.date === formatDate(selectedDate))
                       .map((reservation) => {
@@ -476,7 +477,7 @@ export default function DashboardPage() {
                 Nemate aktivnih rezervacija
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                 {reservations
                   .sort(
                     (a, b) =>
@@ -545,7 +546,7 @@ export default function DashboardPage() {
                 Nema rezervacija za odabrani dan
               </p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                 {allReservations
                   .filter((r) => r.date === formatDate(selectedDate))
                   .map((reservation) => {
