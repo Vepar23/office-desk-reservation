@@ -44,7 +44,36 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { x, y, width, height, desk_number, status } = await request.json()
+    const { x, y, width, height, desk_number, status, requestingUserId } = await request.json()
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (x === undefined || y === undefined || !desk_number) {
       return NextResponse.json(
@@ -105,7 +134,36 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { id, x, y, width, height, desk_number, status } = await request.json()
+    const { id, x, y, width, height, desk_number, status, requestingUserId } = await request.json()
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (!id) {
       return NextResponse.json(
@@ -181,6 +239,36 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const deskId = searchParams.get('id')
+    const requestingUserId = searchParams.get('requestingUserId')
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (!deskId) {
       return NextResponse.json(

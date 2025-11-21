@@ -56,7 +56,36 @@ export async function GET(request: NextRequest) {
 // POST - Kreiraj novog korisnika
 export async function POST(request: NextRequest) {
   try {
-    const { username, password, is_admin } = await request.json()
+    const { username, password, is_admin, requestingUserId } = await request.json()
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (!username || !password) {
       return NextResponse.json(
@@ -164,6 +193,36 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('id')
+    const requestingUserId = searchParams.get('requestingUserId')
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (!userId) {
       return NextResponse.json(

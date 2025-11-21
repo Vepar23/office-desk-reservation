@@ -132,7 +132,10 @@ export default function AdminPage() {
       const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify({
+          ...newUser,
+          requestingUserId: user?.id, // 🔒 SECURITY: Send requesting user ID
+        }),
       })
 
       const data = await response.json()
@@ -154,7 +157,7 @@ export default function AdminPage() {
       return
 
     try {
-      const response = await fetch(`/api/users?id=${userId}`, {
+      const response = await fetch(`/api/users?id=${userId}&requestingUserId=${user?.id}`, {
         method: 'DELETE',
       })
 
@@ -285,7 +288,10 @@ export default function AdminPage() {
       const response = await fetch('/api/office-map', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_url: finalImageUrl }),
+        body: JSON.stringify({ 
+          image_url: finalImageUrl,
+          requestingUserId: user?.id, // 🔒 SECURITY: Send requesting user ID
+        }),
       })
 
       const data = await response.json()
@@ -320,6 +326,7 @@ export default function AdminPage() {
           height: 80,
           desk_number: newDesk.desk_number,
           status: newDesk.status,
+          requestingUserId: user?.id, // 🔒 SECURITY: Send requesting user ID
         }),
       })
 
@@ -342,7 +349,10 @@ export default function AdminPage() {
       const response = await fetch('/api/desks', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(desk),
+        body: JSON.stringify({
+          ...desk,
+          requestingUserId: user?.id, // 🔒 SECURITY: Send requesting user ID
+        }),
       })
 
       if (response.ok) {
@@ -365,7 +375,7 @@ export default function AdminPage() {
     if (!confirm('Da li ste sigurni da želite obrisati ovaj stol?')) return
 
     try {
-      const response = await fetch(`/api/desks?id=${deskId}`, {
+      const response = await fetch(`/api/desks?id=${deskId}&requestingUserId=${user?.id}`, {
         method: 'DELETE',
       })
 

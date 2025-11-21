@@ -47,7 +47,36 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { image_url } = await request.json()
+    const { image_url, requestingUserId } = await request.json()
+
+    // 🔒 SECURITY: Admin authorization check
+    if (!requestingUserId) {
+      return NextResponse.json(
+        { error: 'Niste autentifikovani' },
+        { status: 401 }
+      )
+    }
+
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database nije konfigurisan' },
+        { status: 500 }
+      )
+    }
+
+    // Provjeri da li je requesting user zaista admin
+    const { data: requestingUser, error: authError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', requestingUserId)
+      .single()
+
+    if (authError || !requestingUser || !requestingUser.is_admin) {
+      return NextResponse.json(
+        { error: 'Nemate admin privilegije' },
+        { status: 403 }
+      )
+    }
 
     if (!image_url) {
       return NextResponse.json(
