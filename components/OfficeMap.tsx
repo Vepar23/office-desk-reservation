@@ -22,6 +22,8 @@ interface OfficeMapProps {
   onDeskUpdate?: (desk: Desk) => void
   onDeskDelete?: (deskId: string) => void
   reservations?: any[]
+  exemptions?: any[]
+  onExemptDesk?: (desk: Desk) => void
 }
 
 type ResizeHandle = 'ne' | 'se' | 'sw' | 'nw' | 'n' | 's' | 'e' | 'w' | null
@@ -35,6 +37,8 @@ export default function OfficeMap({
   onDeskUpdate,
   onDeskDelete,
   reservations = [],
+  exemptions = [],
+  onExemptDesk,
 }: OfficeMapProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
@@ -81,9 +85,17 @@ export default function OfficeMap({
   }
 
   const getDeskStatus = (desk: Desk) => {
-    if (desk.status === 'permanently_occupied') return 'gray'
-
     const dateString = formatDate(selectedDate)
+    
+    // Check if permanently occupied desk is exempted for this date
+    if (desk.status === 'permanently_occupied') {
+      const isExempted = exemptions.some(
+        (e) => e.desk_id === desk.id && e.date === dateString
+      )
+      // If exempted, treat as available
+      if (!isExempted) return 'gray'
+    }
+
     const isReserved = reservations.some(
       (r) => r.desk_id === desk.id && r.date === dateString
     )
@@ -102,14 +114,17 @@ export default function OfficeMap({
     return reservation
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string, isPermanentlyOccupied: boolean) => {
     switch (status) {
       case 'green':
         return 'bg-green-500 hover:bg-green-600 border-green-700'
       case 'red':
         return 'bg-red-500 hover:bg-red-600 border-red-700 cursor-not-allowed'
       case 'gray':
-        return 'bg-gray-500 hover:bg-gray-600 border-gray-700 cursor-not-allowed'
+        // Gray desks are clickable (to allow exemption) unless in admin mode
+        return isAdmin 
+          ? 'bg-gray-500 hover:bg-gray-600 border-gray-700'
+          : 'bg-gray-500 hover:bg-gray-600 border-gray-700 cursor-pointer'
       default:
         return 'bg-green-500 hover:bg-green-600 border-green-700'
     }
@@ -303,8 +318,20 @@ export default function OfficeMap({
   }
 
   const handleDeskClick = (desk: Desk) => {
+    if (isAdmin) return
+
     const status = getDeskStatus(desk)
-    if (status === 'green' && onDeskClick && !isAdmin) {
+    
+    // Handle permanently occupied desks
+    if (desk.status === 'permanently_occupied' && status === 'gray') {
+      if (onExemptDesk) {
+        onExemptDesk(desk)
+      }
+      return
+    }
+
+    // Handle available desks
+    if (status === 'green' && onDeskClick) {
       onDeskClick(desk)
     }
   }
@@ -471,9 +498,9 @@ export default function OfficeMap({
             <div
               key={desk.id}
               className={`absolute rounded-lg border-2 flex items-center justify-center font-bold text-white transition-all ${getStatusColor(
-                status
+                status, desk.status === 'permanently_occupied'
               )} ${isSelected ? 'shadow-2xl ring-4 ring-blue-400 z-50' : 'shadow-md'} ${
-                isAdmin ? 'cursor-move' : 'cursor-pointer'
+                isAdmin ? 'cursor-move' : (status === 'gray' || status === 'green' ? 'cursor-pointer' : 'cursor-not-allowed')
               }`}
               style={{
                 left: `${desk.x}px`,

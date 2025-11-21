@@ -40,10 +40,19 @@ export default function DashboardPage() {
   const [officeMap, setOfficeMap] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [allReservations, setAllReservations] = useState<Reservation[]>([])
+  const [exemptions, setExemptions] = useState<any[]>([])
   
   // Confirmation dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [pendingReservation, setPendingReservation] = useState<{
+    desk: Desk
+    dateString: string
+    formattedDate: string
+  } | null>(null)
+  
+  // Exemption dialog state
+  const [showExemptDialog, setShowExemptDialog] = useState(false)
+  const [pendingExemption, setPendingExemption] = useState<{
     desk: Desk
     dateString: string
     formattedDate: string
@@ -108,6 +117,12 @@ export default function DashboardPage() {
           })
         setReservations(userReservationsWithDeskNumbers)
       }
+
+      // Fetch exemptions
+      const exemptionsResponse = await fetch('/api/desk-exemptions')
+      const exemptionsData = await exemptionsResponse.json()
+      console.log('📊 Desk Exemptions:', exemptionsData.exemptions)
+      setExemptions(exemptionsData.exemptions || [])
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -187,6 +202,58 @@ export default function DashboardPage() {
   const handleCancelConfirmation = () => {
     setShowConfirmDialog(false)
     setPendingReservation(null)
+  }
+
+  const handleExemptDesk = async (desk: Desk) => {
+    if (!user) return
+
+    const dateString = formatDate(selectedDate)
+    const formattedDate = new Intl.DateTimeFormat('hr-HR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(selectedDate)
+
+    // Show exemption confirmation dialog
+    setPendingExemption({ desk, dateString, formattedDate })
+    setShowExemptDialog(true)
+  }
+
+  const handleConfirmExemption = async () => {
+    if (!user || !pendingExemption) return
+
+    setShowExemptDialog(false)
+
+    try {
+      const response = await fetch('/api/desk-exemptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          desk_id: pendingExemption.desk.id,
+          date: pendingExemption.dateString,
+          created_by: user.id,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error)
+      }
+
+      alert(`Mjesto ${pendingExemption.desk.desk_number} je oslobođeno za ${pendingExemption.formattedDate}!`)
+      fetchData()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Greška pri oslobađanju mjesta')
+    } finally {
+      setPendingExemption(null)
+    }
+  }
+
+  const handleCancelExemption = () => {
+    setShowExemptDialog(false)
+    setPendingExemption(null)
   }
 
   const handleCancelReservation = async (reservationId: string) => {
@@ -327,6 +394,8 @@ export default function DashboardPage() {
               selectedDate={selectedDate}
               onDeskClick={handleDeskClick}
               reservations={allReservations}
+              exemptions={exemptions}
+              onExemptDesk={handleExemptDesk}
             />
           </div>
         </div>
@@ -352,6 +421,8 @@ export default function DashboardPage() {
                 selectedDate={selectedDate}
                 onDeskClick={handleDeskClick}
                 reservations={allReservations}
+                exemptions={exemptions}
+                onExemptDesk={handleExemptDesk}
               />
             </div>
 
@@ -583,6 +654,21 @@ export default function DashboardPage() {
         onConfirm={handleConfirmReservation}
         onCancel={handleCancelConfirmation}
         confirmText="Da, rezerviraj"
+        cancelText="Ne, odustani"
+      />
+
+      {/* Exemption Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showExemptDialog}
+        title="Oslobodi Trajno Rezervirano Mjesto"
+        message={
+          pendingExemption
+            ? `Da li želite osloboditi mjesto ${pendingExemption.desk.desk_number} za ${pendingExemption.formattedDate}? Mjesto će postati dostupno za rezervaciju samo za ovaj dan.`
+            : ''
+        }
+        onConfirm={handleConfirmExemption}
+        onCancel={handleCancelExemption}
+        confirmText="Da, oslobodi"
         cancelText="Ne, odustani"
       />
 
