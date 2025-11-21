@@ -14,7 +14,11 @@ export default function Calendar({
   onDateSelect,
   reservedDates = [],
 }: CalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  // Postavi trenutni mjesec na mjesec selektiranog datuma (ili danas ako nema selekcije)
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const initial = selectedDate || new Date()
+    return new Date(initial.getFullYear(), initial.getMonth(), 1)
+  })
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const todayRef = useRef<HTMLButtonElement>(null)
 
@@ -96,7 +100,11 @@ export default function Calendar({
       currentMonth.getMonth(),
       day
     )
-    const dateString = date.toISOString().split('T')[0]
+    // Koristi lokalni timezone umjesto UTC
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const dayStr = String(date.getDate()).padStart(2, '0')
+    const dateString = `${year}-${month}-${dayStr}`
     return reservedDates.includes(dateString)
   }
 

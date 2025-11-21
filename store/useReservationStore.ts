@@ -19,7 +19,12 @@ interface ReservationState {
 
 export const useReservationStore = create<ReservationState>((set) => ({
   reservations: [],
-  selectedDate: new Date(),
+  // Postavi default datum na danas u lokalnom timezone-u
+  selectedDate: (() => {
+    const now = new Date()
+    // Kreiraj novi datum u lokalnom timezone-u (ponoć)
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  })(),
   setReservations: (reservations) => set({ reservations }),
   setSelectedDate: (date) => set({ selectedDate: date }),
   addReservation: (reservation) =>
