@@ -7,7 +7,7 @@
 -- Kreiraj desk_exemptions tabelu
 CREATE TABLE IF NOT EXISTS desk_exemptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  desk_id UUID NOT NULL REFERENCES desks(id) ON DELETE CASCADE,
+  desk_id UUID NOT NULL REFERENCES desk_elements(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

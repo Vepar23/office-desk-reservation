@@ -382,6 +382,11 @@ export default function OfficeMap({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onScroll={() => {
+          // Hide tooltip when scrolling
+          setHoveredDesk(null)
+          setTooltipPosition(null)
+        }}
         onTouchStart={(e) => {
           setTouchStartTime(Date.now())
           setTouchMoved(false)
@@ -420,6 +425,10 @@ export default function OfficeMap({
         }}
         onTouchMove={(e) => {
           setTouchMoved(true)
+          
+          // Hide tooltip when moving/scrolling on mobile
+          setHoveredDesk(null)
+          setTooltipPosition(null)
           
           // Handle pinch zoom
           if (e.touches.length === 2 && lastTouchDistance !== null) {
