@@ -1,7 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { isWeekend, isSameDay } from '@/lib/utils'
+import { isWeekend, isSameDay, formatDate } from '@/lib/utils'
+
+interface WeatherData {
+  date: string
+  temp_avg: number
+  temp_min: number
+  temp_max: number
+  weather: string
+  description: string
+  icon: string
+}
 
 interface CalendarProps {
   selectedDate: Date
@@ -21,6 +31,10 @@ export default function Calendar({
   })
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const todayRef = useRef<HTMLButtonElement>(null)
+  
+  // Weather data state
+  const [weatherData, setWeatherData] = useState<Record<string, WeatherData>>({})
+  const [weatherLoading, setWeatherLoading] = useState(true)
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -50,6 +64,27 @@ export default function Calendar({
   ]
 
   const dayNames = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub']
+
+  // Fetch weather data
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        setWeatherLoading(true)
+        const response = await fetch('/api/weather')
+        const data = await response.json()
+        
+        if (data.forecast) {
+          setWeatherData(data.forecast)
+        }
+      } catch (error) {
+        console.error('Error fetching weather:', error)
+      } finally {
+        setWeatherLoading(false)
+      }
+    }
+
+    fetchWeather()
+  }, [])
 
   // Auto-scroll to today's date
   useEffect(() => {
@@ -106,6 +141,27 @@ export default function Calendar({
     const dayStr = String(date.getDate()).padStart(2, '0')
     const dateString = `${year}-${month}-${dayStr}`
     return reservedDates.includes(dateString)
+  }
+
+  const getWeatherIcon = (weather: string) => {
+    switch (weather) {
+      case 'Clear':
+        return '☀️' // Sunce
+      case 'Clouds':
+        return '☁️' // Oblak
+      case 'Rain':
+      case 'Drizzle':
+        return '🌧️' // Kiša
+      case 'Snow':
+        return '❄️' // Snijeg
+      case 'Thunderstorm':
+        return '⛈️' // Grmljavina
+      case 'Mist':
+      case 'Fog':
+        return '🌫️' // Magla
+      default:
+        return '🌤️' // Djelomično oblačno (default)
+    }
   }
 
   return (
@@ -172,6 +228,9 @@ export default function Calendar({
                            date.getMonth() === today.getMonth() && 
                            date.getFullYear() === today.getFullYear()
 
+            const dateStr = formatDate(date)
+            const weather = weatherData[dateStr]
+
             return (
               <button
                 key={day}
@@ -179,7 +238,7 @@ export default function Calendar({
                 onClick={() => handleDateClick(day)}
                 disabled={isWeekendDay || isPast}
                 className={`
-                  flex flex-col items-center justify-center rounded-xl p-2 sm:p-3 min-w-[60px] sm:min-w-[70px] transition-all
+                  flex flex-col items-center justify-center rounded-xl p-2 sm:p-3 min-w-[70px] sm:min-w-[80px] transition-all
                   ${
                     isSelected
                       ? 'bg-blue-600 text-white scale-105 shadow-lg ring-2 ring-blue-400'
@@ -196,9 +255,27 @@ export default function Calendar({
                 <span className="text-[10px] sm:text-xs font-medium opacity-75 mb-1">
                   {dayName}
                 </span>
-                <span className="text-lg sm:text-2xl font-bold">
+                <span className="text-lg sm:text-2xl font-bold mb-1">
                   {day}
                 </span>
+                
+                {/* Weather Info */}
+                {weather && !weatherLoading && (
+                  <div className="flex flex-col items-center mt-1 border-t border-gray-200 pt-1 w-full">
+                    <span className="text-lg sm:text-xl mb-0.5">{getWeatherIcon(weather.weather)}</span>
+                    <span className={`text-[10px] sm:text-xs font-semibold ${
+                      isSelected ? 'text-white' : 'text-blue-600'
+                    }`}>
+                      {weather.temp_avg}°C
+                    </span>
+                  </div>
+                )}
+                
+                {weatherLoading && (
+                  <div className="mt-1 h-8 w-full flex items-center justify-center">
+                    <div className="animate-spin h-3 w-3 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
               </button>
             )
           })}
