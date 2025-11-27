@@ -520,15 +520,29 @@ export default function OfficeMap({
             style={{
               width: `${MAP_WIDTH}px`,
               height: `${MAP_HEIGHT}px`,
-              backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-              backgroundSize: 'contain',
+              // Zagreb city map as background layer
+              backgroundImage: `url(/zagreb-map.png)`,
+              backgroundSize: 'cover',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
-              backgroundColor: backgroundImage ? '#f9fafb' : '#f9fafb',
               transform: `scale(${zoom})`,
               transformOrigin: 'top left',
             }}
           >
+            {/* Office floor plan layer with transparency */}
+            {backgroundImage && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${backgroundImage})`,
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  opacity: 0.85, // Slight transparency to see city map behind
+                  backgroundColor: 'rgba(249, 250, 251, 0.7)', // Semi-transparent white
+                }}
+              />
+            )}
         {desks.map((desk) => {
           const status = getDeskStatus(desk)
           const isSelected = selectedDesk === desk.id
