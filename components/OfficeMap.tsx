@@ -48,13 +48,14 @@ export default function OfficeMap({
   const [initialResize, setInitialResize] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   
-  // Mobile zoom functionality - default 100% for all devices
+  // Zoom functionality - default 50% on mobile, 100% on desktop
   const [zoom, setZoom] = useState(1)
   const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null)
   const [touchStartTime, setTouchStartTime] = useState<number>(0)
   const [touchMoved, setTouchMoved] = useState(false)
   const [hoveredDesk, setHoveredDesk] = useState<string | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   
   // Fixed map dimensions (no scaling - use scrolling instead)
   // Desktop: large map size, Mobile: scrollable + zoomable
@@ -71,8 +72,37 @@ export default function OfficeMap({
   }
 
   const handleZoomReset = () => {
-    setZoom(1) // Reset to 100% for all devices
+    setZoom(isMobile ? 0.5 : 1) // Reset to 50% on mobile, 100% on desktop
   }
+
+  // Initialize mobile detection and set default zoom
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 640 // sm breakpoint
+      setIsMobile(mobile)
+      // Set initial zoom: 50% on mobile, 100% on desktop
+      setZoom(mobile ? 0.5 : 1)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Center the map on initial load
+  useEffect(() => {
+    if (containerRef.current && backgroundImage) {
+      const container = containerRef.current
+      const scrollX = (MAP_WIDTH * zoom - container.clientWidth) / 2
+      const scrollY = (MAP_HEIGHT * zoom - container.clientHeight) / 2
+      
+      container.scrollTo({
+        left: Math.max(0, scrollX),
+        top: Math.max(0, scrollY),
+        behavior: 'smooth'
+      })
+    }
+  }, [backgroundImage, zoom])
 
   // Calculate distance between two touch points
   const getTouchDistance = (touches: React.TouchList) => {
@@ -343,29 +373,31 @@ export default function OfficeMap({
         👆 Tap na stol za rezervaciju • Pinch za zoom • Scrollaj za navigaciju
       </div>
 
-      {/* Mobile Zoom Controls - larger touch targets */}
-      <div className="mb-2 sm:hidden flex items-center justify-center gap-2">
+      {/* Zoom Controls - visible on both mobile and desktop */}
+      <div className="mb-2 flex items-center justify-center gap-2">
         <button
           onClick={handleZoomOut}
-          className="bg-blue-600 text-white rounded-lg px-4 py-3 font-bold text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[48px]"
+          className="bg-blue-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-3 font-bold text-lg sm:text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[40px] sm:min-w-[48px]"
           disabled={zoom <= 0.5}
+          title="Zoom Out"
         >
           −
         </button>
-        <div className="bg-gray-100 px-4 py-3 rounded-lg text-sm font-semibold text-gray-700 min-w-[70px] text-center">
+        <div className="bg-gray-100 px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold text-gray-700 min-w-[60px] sm:min-w-[70px] text-center">
           {Math.round(zoom * 100)}%
         </div>
         <button
           onClick={handleZoomReset}
-          className="bg-gray-600 text-white rounded-lg px-4 py-3 text-sm hover:bg-gray-700 active:bg-gray-800 transition whitespace-nowrap"
+          className="bg-gray-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm hover:bg-gray-700 active:bg-gray-800 transition whitespace-nowrap"
           title="Reset zoom"
         >
           ⟲
         </button>
         <button
           onClick={handleZoomIn}
-          className="bg-blue-600 text-white rounded-lg px-4 py-3 font-bold text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[48px]"
+          className="bg-blue-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-3 font-bold text-lg sm:text-xl hover:bg-blue-700 active:bg-blue-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed min-w-[40px] sm:min-w-[48px]"
           disabled={zoom >= 3}
+          title="Zoom In"
         >
           +
         </button>

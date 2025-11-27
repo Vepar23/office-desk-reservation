@@ -104,7 +104,7 @@ export default function Calendar({
         behavior: 'smooth'
       })
     }
-  }, [currentMonth])
+  }, [currentMonth, weatherLoading]) // Also trigger when weather finishes loading
 
   const handlePrevMonth = () => {
     setCurrentMonth(
