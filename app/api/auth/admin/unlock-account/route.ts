@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!supabase) {
       return NextResponse.json(
-        { error: 'Database nije konfigurisan' },
+        { error: 'Baza podataka nije konfigurirana' },
         { status: 500 }
       )
     }
@@ -60,15 +60,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Provjeri da li je account zapravo lockovan
+    // Provjeri da li je račun zapravo zaključan
     if (!targetUser.locked) {
       return NextResponse.json(
-        { error: 'Account nije zaključan' },
+        { error: 'Račun nije zaključan' },
         { status: 400 }
       )
     }
 
-    // Unlock account i resetuj failed attempts
+    // Otključaj račun i resetiraj neuspjele pokušaje prijave
     const { error: updateError } = await supabase
       .from('users')
       .update({ 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Unlock account error:', updateError)
       return NextResponse.json(
-        { error: 'Greška pri otključavanju accounta' },
+        { error: 'Greška pri otključavanju računa' },
         { status: 500 }
       )
     }
@@ -89,14 +89,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: true, 
-        message: `Account korisnika "${targetUser.username}" je uspješno otključan` 
+        message: `Račun korisnika "${targetUser.username}" je uspješno otključan` 
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('Admin unlock account error:', error)
     return NextResponse.json(
-      { error: 'Došlo je do greške pri otključavanju accounta' },
+      { error: 'Došlo je do greške pri otključavanju računa' },
       { status: 500 }
     )
   }

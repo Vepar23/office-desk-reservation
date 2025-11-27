@@ -165,7 +165,7 @@ export default function Calendar({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700 transition-colors">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button
           onClick={handlePrevMonth}
@@ -185,7 +185,7 @@ export default function Calendar({
             />
           </svg>
         </button>
-        <h2 className="text-base sm:text-xl font-bold text-gray-800">
+        <h2 className="text-base sm:text-xl font-bold text-gray-800 dark:text-white">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
         <button

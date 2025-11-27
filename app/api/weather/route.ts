@@ -141,3 +141,4 @@ function generateFallbackForecast() {
   return forecast
 }
 
+

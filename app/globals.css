@@ -6,6 +6,24 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --card-bg: 255, 255, 255;
+  --card-border: 229, 231, 235;
+  --text-primary: 31, 41, 55;
+  --text-secondary: 107, 114, 128;
+  --input-bg: 255, 255, 255;
+  --input-border: 209, 213, 219;
+}
+
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 31, 41, 55;
+  --card-bg: 31, 41, 55;
+  --card-border: 55, 65, 81;
+  --text-primary: 243, 244, 246;
+  --text-secondary: 156, 163, 175;
+  --input-bg: 55, 65, 81;
+  --input-border: 75, 85, 99;
 }
 
 * {
@@ -28,6 +46,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer utilities {
@@ -46,6 +65,10 @@ body {
   background: #f1f1f1;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 4px;
@@ -55,3 +78,167 @@ body {
   background: #555;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Dark mode card styles */
+.dark .bg-white {
+  background-color: rgb(var(--card-bg));
+}
+
+.dark .bg-gray-50 {
+  background-color: rgb(17, 24, 39);
+}
+
+.dark .bg-gray-100 {
+  background-color: rgb(31, 41, 55);
+}
+
+.dark .border-gray-200 {
+  border-color: rgb(var(--card-border));
+}
+
+.dark .border-gray-300 {
+  border-color: rgb(75, 85, 99);
+}
+
+.dark .text-gray-800 {
+  color: rgb(var(--text-primary));
+}
+
+.dark .text-gray-700 {
+  color: rgb(209, 213, 219);
+}
+
+.dark .text-gray-600 {
+  color: rgb(var(--text-secondary));
+}
+
+.dark .text-gray-500 {
+  color: rgb(156, 163, 175);
+}
+
+.dark .text-gray-400 {
+  color: rgb(156, 163, 175);
+}
+
+/* Dark mode form inputs */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: rgb(var(--input-bg));
+  border-color: rgb(var(--input-border));
+  color: rgb(var(--text-primary));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(var(--text-secondary));
+}
+
+/* Dark mode shadows */
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode gradient backgrounds */
+.dark .from-blue-50 {
+  --tw-gradient-from: #1e3a5f;
+}
+
+.dark .to-blue-100 {
+  --tw-gradient-to: #1e3a5f;
+}
+
+.dark .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to));
+}
+
+/* Dark mode for specific elements */
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dark .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dark .bg-yellow-50 {
+  background-color: rgba(234, 179, 8, 0.1);
+}
+
+.dark .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.dark .border-green-200 {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.dark .border-yellow-200 {
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.dark .border-yellow-400 {
+  border-color: rgba(234, 179, 8, 0.5);
+}
+
+.dark .text-blue-800 {
+  color: rgb(147, 197, 253);
+}
+
+.dark .text-blue-700 {
+  color: rgb(147, 197, 253);
+}
+
+.dark .text-green-700 {
+  color: rgb(134, 239, 172);
+}
+
+.dark .text-yellow-800 {
+  color: rgb(253, 224, 71);
+}
+
+.dark .text-red-700 {
+  color: rgb(252, 165, 165);
+}
+
+/* Hover states in dark mode */
+.dark .hover\:bg-gray-200:hover {
+  background-color: rgb(55, 65, 81);
+}
+
+.dark .hover\:bg-blue-200:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .hover\:bg-blue-100:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* Focus states in dark mode */
+.dark .focus\:ring-blue-500:focus {
+  --tw-ring-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Animation for theme transition */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

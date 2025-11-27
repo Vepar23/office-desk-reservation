@@ -8,6 +8,7 @@ import Calendar from '@/components/Calendar'
 import OfficeMap from '@/components/OfficeMap'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import HamburgerMenu from '@/components/HamburgerMenu'
+import ThemeToggle from '@/components/ThemeToggle'
 import { formatDate, parseLocalDate } from '@/lib/utils'
 
 interface Desk {
@@ -331,18 +332,19 @@ export default function DashboardPage() {
   const reservedDates = reservations.map((r) => r.date)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-white">
               Rezervacija Mjesta
             </h1>
             <div className="flex items-center gap-2 sm:gap-4">
-              <span className="hidden sm:inline text-gray-600">
+              <span className="hidden sm:inline text-gray-600 dark:text-gray-300">
                 Dobrodošli, <span className="font-semibold">{user?.username}</span>
               </span>
+              <ThemeToggle />
               <button
                 onClick={() => setShowPasswordDialog(true)}
                 className="px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-base bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"

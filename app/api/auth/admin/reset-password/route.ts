@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     if (!supabase) {
       return NextResponse.json(
-        { error: 'Database nije konfigurisan' },
+        { error: 'Baza podataka nije konfigurirana' },
         { status: 500 }
       )
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Reset password error:', updateError)
       return NextResponse.json(
-        { error: 'Greška pri resetovanju lozinke' },
+        { error: 'Greška pri postavljanju nove lozinke' },
         { status: 500 }
       )
     }
@@ -92,14 +92,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: true, 
-        message: `Lozinka za korisnika "${targetUser.username}" je uspješno resetovana` 
+        message: `Lozinka za korisnika "${targetUser.username}" je uspješno postavljena` 
       },
       { status: 200 }
     )
   } catch (error) {
     console.error('Admin reset password error:', error)
     return NextResponse.json(
-      { error: 'Došlo je do greške pri resetovanju lozinke' },
+      { error: 'Došlo je do greške pri postavljanju nove lozinke' },
       { status: 500 }
     )
   }

@@ -337,7 +337,7 @@ export default function OfficeMap({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-2 sm:p-4 h-full">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-4 h-full transition-colors">
       {/* Mobile Instructions */}
       <div className="mb-2 sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700 text-center">
         👆 Tap na stol za rezervaciju • Pinch za zoom • Scrollaj za navigaciju

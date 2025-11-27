@@ -47,13 +47,13 @@ export default function HamburgerMenu({ children, title }: HamburgerMenuProps) {
 
       {/* Slide-in Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl z-[55] lg:hidden transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-800 shadow-2xl z-[55] lg:hidden transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="p-6 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
             <button
               onClick={() => setIsOpen(false)}
               className="text-gray-500 hover:text-gray-700"

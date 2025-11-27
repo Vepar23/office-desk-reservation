@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
 import OfficeMap from '@/components/OfficeMap'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface Desk {
   id: string
@@ -199,22 +200,22 @@ export default function AdminPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Greška pri resetovanju lozinke')
+        throw new Error(data.error || 'Greška pri postavljanju nove lozinke')
       }
 
-      alert(data.message || 'Lozinka uspješno resetovana')
+      alert(data.message || 'Lozinka uspješno postavljena')
       setShowResetPasswordDialog(false)
       setResetPasswordUser(null)
       setNewPassword('')
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Greška pri resetovanju lozinke')
+      alert(error instanceof Error ? error.message : 'Greška pri postavljanju nove lozinke')
     } finally {
       setResetPasswordLoading(false)
     }
   }
 
   const handleUnlockAccount = async (targetUser: User) => {
-    if (!confirm(`Da li želite otključati account korisnika "${targetUser.username}"?`))
+    if (!confirm(`Želite li otključati račun korisnika "${targetUser.username}"?`))
       return
 
     try {
@@ -230,13 +231,13 @@ export default function AdminPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Greška pri otključavanju accounta')
+        throw new Error(data.error || 'Greška pri otključavanju računa')
       }
 
-      alert(data.message || 'Account uspješno otključan')
+      alert(data.message || 'Račun uspješno otključan')
       fetchData()
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Greška pri otključavanju accounta')
+      alert(error instanceof Error ? error.message : 'Greška pri otključavanju računa')
     }
   }
 
@@ -281,7 +282,7 @@ export default function AdminPage() {
       }
 
       if (!finalImageUrl) {
-        throw new Error('Molimo unesite URL ili odaberite fajl')
+        throw new Error('Molimo unesite URL ili odaberite datoteku')
       }
 
       // Save to office map
@@ -404,16 +405,17 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Admin Panel</h1>
             <div className="flex items-center gap-4">
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-300">
                 Admin: <span className="font-semibold">{user?.username}</span>
               </span>
+              <ThemeToggle />
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -489,7 +491,7 @@ export default function AdminPage() {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    📁 Upload Fajla
+                    Prijenos datoteke
                   </button>
                   <button
                     type="button"
@@ -550,7 +552,7 @@ export default function AdminPage() {
                               }}
                               className="text-sm text-red-600 hover:text-red-800"
                             >
-                              Ukloni fajl
+                              Ukloni datoteku
                             </button>
                           </div>
                         ) : (
@@ -569,7 +571,7 @@ export default function AdminPage() {
                               />
                             </svg>
                             <p className="text-sm font-medium text-gray-700 mb-1">
-                              Kliknite da odaberete fajl
+                              Kliknite da odaberete datoteku
                             </p>
                             <p className="text-xs text-gray-500">
                               JPG, PNG, WEBP, GIF ili PDF (Maks. 5MB)
@@ -848,18 +850,18 @@ export default function AdminPage() {
                         <button
                           onClick={() => handleUnlockAccount(userItem)}
                           className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
-                          title="Otključaj account"
+                          title="Otključaj račun"
                         >
                           🔓 Otključaj
                         </button>
                       )}
-                      <button
+                              <button
                         onClick={() => {
                           setResetPasswordUser(userItem)
                           setShowResetPasswordDialog(true)
                         }}
                         className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
-                        title="Resetuj lozinku"
+                        title="Postavi novu lozinku"
                       >
                         🔑 Lozinka
                       </button>
@@ -887,16 +889,16 @@ export default function AdminPage() {
       {/* Reset Password Dialog */}
       {showResetPasswordDialog && resetPasswordUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Resetuj Lozinku
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+              Postavi Novu Lozinku
             </h2>
-            <p className="text-gray-600 mb-6">
-              Resetovanje lozinke za korisnika: <strong>{resetPasswordUser.username}</strong>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Postavljanje nove lozinke za korisnika: <strong>{resetPasswordUser.username}</strong>
             </p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nova Lozinka (min 6 znakova)
                 </label>
                 <input
@@ -904,7 +906,7 @@ export default function AdminPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Unesite novu lozinku"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   disabled={resetPasswordLoading}
                 />
               </div>
@@ -914,7 +916,7 @@ export default function AdminPage() {
                   disabled={resetPasswordLoading || !newPassword}
                   className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
                 >
-                  {resetPasswordLoading ? 'Resetovanje...' : '✅ Potvrdi'}
+                  {resetPasswordLoading ? 'Postavljanje...' : 'Potvrdi'}
                 </button>
                 <button
                   onClick={() => {
@@ -923,9 +925,9 @@ export default function AdminPage() {
                     setNewPassword('')
                   }}
                   disabled={resetPasswordLoading}
-                  className="flex-1 px-4 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition disabled:bg-gray-200 disabled:cursor-not-allowed font-semibold"
+                  className="flex-1 px-4 py-3 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition disabled:bg-gray-200 disabled:cursor-not-allowed font-semibold"
                 >
-                  ❌ Otkaži
+                  Otkaži
                 </button>
               </div>
             </div>

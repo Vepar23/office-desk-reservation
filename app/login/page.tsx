@@ -60,20 +60,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md transition-colors">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
             Dobrodošli
           </h1>
-          <p className="text-gray-600">Prijavite se na svoj račun</p>
+          <p className="text-gray-600 dark:text-gray-300">Prijavite se na svoj račun</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Korisničko ime
             </label>
@@ -84,7 +84,7 @@ export default function LoginPage() {
               onChange={(e) =>
                 setFormData({ ...formData, username: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Unesite korisničko ime"
               required
             />
@@ -93,7 +93,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Lozinka
             </label>
@@ -104,7 +104,7 @@ export default function LoginPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Unesite lozinku"
               required
             />
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     Preostalo pokušaja: <strong>{attemptsRemaining}</strong>
                   </p>
                   <p className="mt-1 text-xs">
-                    Nakon 5 neuspjelih pokušaja, vaš account će biti automatski zaključan i morat ćete kontaktirati administratora.
+                    Nakon 5 neuspjelih pokušaja, vaš račun će biti automatski zaključan i morat ćete kontaktirati administratora.
                   </p>
                 </div>
               </div>
