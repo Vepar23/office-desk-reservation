@@ -15,6 +15,7 @@ export interface Database {
           username: string
           password_hash: string
           is_admin: boolean
+          is_editor: boolean
           created_at: string
           updated_at: string
         }
@@ -23,6 +24,7 @@ export interface Database {
           username: string
           password_hash: string
           is_admin?: boolean
+          is_editor?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -31,6 +33,7 @@ export interface Database {
           username?: string
           password_hash?: string
           is_admin?: boolean
+          is_editor?: boolean
           created_at?: string
           updated_at?: string
         }

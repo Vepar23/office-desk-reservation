@@ -200,6 +200,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const reservationId = searchParams.get('id')
+    const userId = searchParams.get('userId')
+    const isEditor = searchParams.get('isEditor') === 'true'
 
     if (!reservationId) {
       return NextResponse.json(
@@ -218,11 +220,41 @@ export async function DELETE(request: NextRequest) {
         )
       }
 
+      // If not editor, check if reservation belongs to user
+      if (!isEditor && reservationsMemory[index].user_id !== userId) {
+        return NextResponse.json(
+          { error: 'Nemate dozvolu za brisanje ove rezervacije' },
+          { status: 403 }
+        )
+      }
+
       reservationsMemory.splice(index, 1)
 
       return NextResponse.json(
         { success: true, message: 'Rezervacija uspješno obrisana' },
         { status: 200 }
+      )
+    }
+
+    // Fetch the reservation to check ownership
+    const { data: reservation, error: fetchError } = await supabase
+      .from('reservations')
+      .select('user_id')
+      .eq('id', reservationId)
+      .single()
+
+    if (fetchError || !reservation) {
+      return NextResponse.json(
+        { error: 'Rezervacija nije pronađena' },
+        { status: 404 }
+      )
+    }
+
+    // If not editor, verify user owns this reservation
+    if (!isEditor && reservation.user_id !== userId) {
+      return NextResponse.json(
+        { error: 'Nemate dozvolu za brisanje ove rezervacije' },
+        { status: 403 }
       )
     }
 

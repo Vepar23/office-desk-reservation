@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const hydrate = useAuthStore((state) => state.hydrate)
   const { selectedDate, setSelectedDate, reservations, setReservations } =
     useReservationStore()
 
@@ -68,7 +69,12 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    // Don't auto-login from localStorage - require fresh login every time
+    // Hydrate user from localStorage on mount
+    hydrate()
+  }, [])
+
+  useEffect(() => {
+    // Redirect to login if no user after hydration
     if (!user) {
       router.push('/login')
       return
@@ -262,12 +268,16 @@ export default function DashboardPage() {
       return
 
     try {
-      const response = await fetch(`/api/reservations?id=${reservationId}`, {
-        method: 'DELETE',
-      })
+      const response = await fetch(
+        `/api/reservations?id=${reservationId}&userId=${user?.id}&isEditor=${user?.is_editor || false}`,
+        {
+          method: 'DELETE',
+        }
+      )
 
       if (!response.ok) {
-        throw new Error('Greška pri otkazivanju rezervacije')
+        const data = await response.json()
+        throw new Error(data.error || 'Greška pri otkazivanju rezervacije')
       }
 
       alert('Rezervacija uspješno otkazana')
@@ -514,17 +524,33 @@ export default function DashboardPage() {
                       .filter((r) => r.date === formatDate(selectedDate))
                       .map((reservation) => {
                         const desk = desks.find((d) => d.id === reservation.desk_id)
+                        const isPast =
+                          parseLocalDate(reservation.date) < new Date(new Date().setHours(0, 0, 0, 0))
                         return (
                           <div
                             key={reservation.id}
                             className="p-3 bg-gray-50 rounded-lg border border-gray-200"
                           >
-                            <p className="font-medium text-gray-800">
-                              Mjesto {desk?.desk_number}
-                            </p>
-                            <p className="text-xs text-gray-600 mt-1">
-                              {reservation.username || 'Nepoznato'}
-                            </p>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-medium text-gray-800">
+                                  Mjesto {desk?.desk_number}
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {reservation.username || 'Nepoznato'}
+                                </p>
+                              </div>
+                              {!isPast && user?.is_editor && (
+                                <button
+                                  onClick={() =>
+                                    handleCancelReservation(reservation.id)
+                                  }
+                                  className="text-red-600 hover:text-red-800 text-xs font-medium"
+                                >
+                                  Otkaži
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )
                       })}
@@ -624,17 +650,33 @@ export default function DashboardPage() {
                   .filter((r) => r.date === formatDate(selectedDate))
                   .map((reservation) => {
                     const desk = desks.find((d) => d.id === reservation.desk_id)
+                    const isPast =
+                      parseLocalDate(reservation.date) < new Date(new Date().setHours(0, 0, 0, 0))
                     return (
                       <div
                         key={reservation.id}
                         className="p-3 bg-gray-50 rounded-lg border border-gray-200"
                       >
-                        <p className="font-medium text-gray-800 text-sm">
-                          Mjesto {desk?.desk_number}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {reservation.username || 'Nepoznato'}
-                        </p>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-gray-800 text-sm">
+                              Mjesto {desk?.desk_number}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {reservation.username || 'Nepoznato'}
+                            </p>
+                          </div>
+                          {!isPast && user?.is_editor && (
+                            <button
+                              onClick={() =>
+                                handleCancelReservation(reservation.id)
+                              }
+                              className="text-red-600 hover:text-red-800 text-xs font-medium"
+                            >
+                              Otkaži
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )
                   })}

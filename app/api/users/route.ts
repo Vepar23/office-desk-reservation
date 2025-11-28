@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const { data: users, error } = await supabase
       .from('users')
-      .select('id, username, is_admin, locked, failed_login_attempts, created_at')
+      .select('id, username, is_admin, is_editor, locked, failed_login_attempts, created_at')
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 // POST - Kreiraj novog korisnika
 export async function POST(request: NextRequest) {
   try {
-    const { username, password, is_admin, requestingUserId } = await request.json()
+    const { username, password, is_admin, is_editor, requestingUserId } = await request.json()
 
     // 🔒 SECURITY: Admin authorization check
     if (!requestingUserId) {
@@ -126,6 +126,7 @@ export async function POST(request: NextRequest) {
         username,
         password_hash,
         is_admin: is_admin || false,
+        is_editor: is_editor || false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -160,12 +161,13 @@ export async function POST(request: NextRequest) {
       username,
       password_hash,
       is_admin: is_admin || false,
+      is_editor: is_editor || false,
     }
 
     const { data, error } = await supabase
       .from('users')
       .insert([newUser])
-      .select('id, username, is_admin, created_at')
+      .select('id, username, is_admin, is_editor, created_at')
       .single()
 
     if (error) {

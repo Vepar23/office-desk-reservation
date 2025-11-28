@@ -2,14 +2,26 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/store/useAuthStore'
 
 export default function Home() {
   const router = useRouter()
+  const user = useAuthStore((state) => state.user)
+  const hydrate = useAuthStore((state) => state.hydrate)
 
   useEffect(() => {
-    // Don't auto-login - always redirect to login page
-    router.push('/login')
-  }, [router])
+    // Hydrate user from localStorage
+    hydrate()
+  }, [])
+
+  useEffect(() => {
+    // Redirect based on user state
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      router.push('/login')
+    }
+  }, [user, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

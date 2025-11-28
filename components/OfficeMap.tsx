@@ -72,7 +72,7 @@ export default function OfficeMap({
   }
 
   const handleZoomReset = () => {
-    setZoom(isMobile ? 0.5 : 1) // Reset to 50% on mobile, 100% on desktop
+    setZoom(isMobile ? 0.5 : 0.8) // Reset to 50% on mobile, 80% on desktop
   }
 
   // Initialize mobile detection and set default zoom
@@ -80,8 +80,8 @@ export default function OfficeMap({
     const checkMobile = () => {
       const mobile = window.innerWidth < 640 // sm breakpoint
       setIsMobile(mobile)
-      // Set initial zoom: 50% on mobile, 100% on desktop
-      setZoom(mobile ? 0.5 : 1)
+      // Set initial zoom: 50% on mobile, 80% on desktop
+      setZoom(mobile ? 0.5 : 0.8)
     }
     
     checkMobile()

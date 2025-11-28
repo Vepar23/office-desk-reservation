@@ -253,3 +253,7 @@ const RIJEKA_LON = '14.4422'
 
 **Made with 🌤️ using OpenWeatherMap API**
 
+
+
+
+

@@ -1,0 +1,25 @@
+# Komande za deployment - kopiraj i pokreni u terminalu
+
+# 1. Provjeri status
+git status
+
+# 2. Provjeri zadnji commit
+git log --oneline -3
+
+# 3. Provjeri da li je push prošao
+git log origin/main --oneline -3
+
+# 4. Ako vidiš razliku, pushaj ponovo
+git push origin main
+
+# 5. Pokreni Vercel production deployment
+vercel --prod
+
+# 6. Provjeri Vercel deployments
+vercel ls
+
+# Alternativa: Prisili deployment
+vercel --force --prod
+
+
+
