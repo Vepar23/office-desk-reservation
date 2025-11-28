@@ -268,8 +268,9 @@ export default function DashboardPage() {
       return
 
     try {
+      const isEditor = user?.is_editor === true ? 'true' : 'false'
       const response = await fetch(
-        `/api/reservations?id=${reservationId}&userId=${user?.id}&isEditor=${user?.is_editor || false}`,
+        `/api/reservations?id=${reservationId}&userId=${user?.id}&isEditor=${isEditor}`,
         {
           method: 'DELETE',
         }

@@ -65,6 +65,14 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('')
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false)
 
+  // Edit Role Dialog
+  const [showEditRoleDialog, setShowEditRoleDialog] = useState(false)
+  const [editRoleUser, setEditRoleUser] = useState<User | null>(null)
+  const [editRoleForm, setEditRoleForm] = useState({
+    is_admin: false,
+    is_editor: false,
+  })
+
   useEffect(() => {
     // Don't auto-login from localStorage - require fresh login
     if (!user) {
@@ -240,6 +248,36 @@ export default function AdminPage() {
       fetchData()
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Greška pri otključavanju računa')
+    }
+  }
+
+  const handleUpdateRole = async () => {
+    if (!editRoleUser) return
+
+    try {
+      const response = await fetch('/api/users/update-role', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: editRoleUser.id,
+          is_admin: editRoleForm.is_admin,
+          is_editor: editRoleForm.is_editor,
+          requestingUserId: user?.id,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Greška pri ažuriranju role')
+      }
+
+      alert('Rola uspješno ažurirana!')
+      setShowEditRoleDialog(false)
+      setEditRoleUser(null)
+      fetchData()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Greška pri ažuriranju role')
     }
   }
 
@@ -873,7 +911,21 @@ export default function AdminPage() {
                           🔓 Otključaj
                         </button>
                       )}
-                              <button
+                      <button
+                        onClick={() => {
+                          setEditRoleUser(userItem)
+                          setEditRoleForm({
+                            is_admin: userItem.is_admin || false,
+                            is_editor: userItem.is_editor || false,
+                          })
+                          setShowEditRoleDialog(true)
+                        }}
+                        className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"
+                        title="Izmijeni rolu"
+                      >
+                        👤 Rola
+                      </button>
+                      <button
                         onClick={() => {
                           setResetPasswordUser(userItem)
                           setShowResetPasswordDialog(true)
@@ -944,6 +996,69 @@ export default function AdminPage() {
                   }}
                   disabled={resetPasswordLoading}
                   className="flex-1 px-4 py-3 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition disabled:bg-gray-200 disabled:cursor-not-allowed font-semibold"
+                >
+                  Otkaži
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Role Dialog */}
+      {showEditRoleDialog && editRoleUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+              Izmijeni Rolu
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Izmjena role za korisnika: <strong>{editRoleUser.username}</strong>
+            </p>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="edit_is_admin"
+                    checked={editRoleForm.is_admin}
+                    onChange={(e) =>
+                      setEditRoleForm({ ...editRoleForm, is_admin: e.target.checked })
+                    }
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="edit_is_admin" className="text-sm text-gray-700 dark:text-gray-300">
+                    Administrator (puni pristup svemu)
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="edit_is_editor"
+                    checked={editRoleForm.is_editor}
+                    onChange={(e) =>
+                      setEditRoleForm({ ...editRoleForm, is_editor: e.target.checked })
+                    }
+                    className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="edit_is_editor" className="text-sm text-gray-700 dark:text-gray-300">
+                    Editor (može brisati sve rezervacije)
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleUpdateRole}
+                  className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-semibold"
+                >
+                  Sačuvaj
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEditRoleDialog(false)
+                    setEditRoleUser(null)
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition font-semibold"
                 >
                   Otkaži
                 </button>
