@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 interface User {
   id: string
@@ -9,41 +10,28 @@ interface User {
 
 interface AuthState {
   user: User | null
+  isHydrated: boolean
   setUser: (user: User | null) => void
   logout: () => void
-  hydrate: () => void
+  setHydrated: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  setUser: (user) => {
-    // Persist to localStorage
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user))
-    } else {
-      localStorage.removeItem('user')
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isHydrated: false,
+      setUser: (user) => set({ user }),
+      logout: () => set({ user: null }),
+      setHydrated: () => set({ isHydrated: true }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated()
+      },
     }
-    set({ user })
-  },
-  logout: () => {
-    // Clear localStorage
-    localStorage.removeItem('user')
-    set({ user: null })
-  },
-  hydrate: () => {
-    // Load user from localStorage on mount
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser)
-          set({ user })
-        } catch (error) {
-          console.error('Failed to parse stored user:', error)
-          localStorage.removeItem('user')
-        }
-      }
-    }
-  },
-}))
+  )
+)
 

@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
-  const hydrate = useAuthStore((state) => state.hydrate)
+  const isHydrated = useAuthStore((state) => state.isHydrated)
   const { selectedDate, setSelectedDate, reservations, setReservations } =
     useReservationStore()
 
@@ -69,19 +69,16 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    // Hydrate user from localStorage on mount
-    hydrate()
-  }, [])
-
-  useEffect(() => {
-    // Redirect to login if no user after hydration
-    if (!user) {
-      router.push('/login')
-      return
+    // Wait for hydration, then check auth
+    if (isHydrated) {
+      if (!user) {
+        router.push('/login')
+        return
+      }
+      fetchData()
     }
-
-    fetchData()
-  }, [user, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isHydrated, router])
 
   const fetchData = async () => {
     try {
